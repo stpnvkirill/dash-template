@@ -19,14 +19,24 @@ class UserService(BaseService):
     def check_email_is_available(self, email):
         return not self.UserSQL.get_by(email=email)
 
-    def to_dto(self, user_model: User):
+    def to_dto(self, user_model: User | UserDto, session: UserSession = None):
         if user_model:
             return UserDto(
                 id=user_model.id,
                 email=user_model.email,
                 first_name=user_model.first_name,
                 last_name=user_model.last_name,
-                sex=user_model.sex,
+                sex=user_model.sex
+                if isinstance(user_model.sex, str)
+                else user_model.sex.value,
+                session=SessionDto(
+                    id=session.id,
+                    is_active=session.is_active,
+                    os=session.os,
+                    ip=session.ip_address,
+                )
+                if session is not None
+                else None,
             )
 
     def create_user(
@@ -56,7 +66,7 @@ class UserService(BaseService):
     def auth(self, email, password):
         user_model: User = self.UserSQL.get_by(email=email.lower())
         if user_model and check_password_hash(user_model.password, password):
-            return self.to_dto(user_model)
+            return self.create_session(user=user_model)
 
     def get_user_by_session(self, session_id: UUID):
         with self.UserSQL.session as s:
@@ -76,11 +86,14 @@ class UserService(BaseService):
 
             stmt = sa.select(User).join(update_subq, User.id == update_subq.c.user_id)
             user = s.scalar(stmt)
-            return self.to_dto(user)
+            session = s.scalar(
+                sa.select(UserSession).where(UserSession.id == session_id)
+            )
+            return self.to_dto(user, session)
 
     def create_session(
         self,
-        user: UserDto,
+        user: UserDto | User,
         ip: str | None = None,
         os: Literal["WINDOWS", "LINUX", "MACOS", "IOS", "ANDROID"] | None = None,
     ):
@@ -88,13 +101,7 @@ class UserService(BaseService):
             user_id=user.id, ip_address=ip, os=os
         )
         if session:
-            return SessionDto(
-                id=session.id,
-                is_active=session.is_active,
-                os=session.os,
-                ip=session.ip_address,
-                user=user,
-            )
+            return self.to_dto(user_model=user, session=session)
 
     def deactivate_session(
         self,

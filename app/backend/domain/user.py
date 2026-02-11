@@ -1,9 +1,12 @@
 from dataclasses import dataclass
+from uuid import UUID
+
+from flask_login import UserMixin
 
 
 @dataclass(slots=True)
-class UserDto:
-    id: str
+class UserDto(UserMixin):
+    id: UUID
     email: str
 
     first_name: str | None
@@ -11,11 +14,15 @@ class UserDto:
 
     sex: str
 
+    session: SessionDto | None = None
+
+    def get_id(self):
+        return self.session.id
+
 
 @dataclass(slots=True)
 class SessionDto:
-    id: str
+    id: UUID
     is_active: bool
     os: str
     ip: str
-    user: UserDto
