@@ -15,11 +15,11 @@ def login_form(next_page):
             dmc.GridCol(
                 dmc.Stack(
                     [
-                        dmc.Title("Вход в систему", order=2, w="100%", ta="center"),
+                        dmc.Title("Welcome back!", order=2, w="100%", ta="center"),
                         dmc.Text(
                             [
-                                "У вас еще нет аккаунта? ",  # noqa: RUF001
-                                dmc.Anchor("Зарегистрироваться", href="/reg"),
+                                "Do not have an account yet? ",
+                                dmc.Anchor("Create account", href="/reg"),
                             ],
                             w="100%",
                             ta="center",

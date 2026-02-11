@@ -7,7 +7,7 @@ from app.frontend.components.base import BaseComponent
 class UserEmailInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="Почта",
+            label="Email",
             placeholder="ivan@developer.ru",
             leftSection=DashIconify(icon="ic:round-alternate-email"),
             id=self.component_id,
@@ -18,8 +18,8 @@ class UserEmailInput(BaseComponent):
 class UserFirstNameInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="Имя",
-            placeholder="Иван",
+            label="First Name",
+            placeholder="John",
             leftSection=DashIconify(icon="radix-icons:person"),
             id=self.component_id,
             **kwargs,
@@ -29,8 +29,8 @@ class UserFirstNameInput(BaseComponent):
 class UserLastNameInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="Фамилия",
-            placeholder="Иванов",
+            label="Last Name",
+            placeholder="Smith",
             leftSection=DashIconify(icon="radix-icons:person"),
             id=self.component_id,
             **kwargs,
@@ -42,8 +42,8 @@ class UserSexInput(BaseComponent):
         return dmc.ChipGroup(
             dmc.Group(
                 [
-                    dmc.Chip("Мужчина", value="MALE"),
-                    dmc.Chip("Женщина", value="FEMALE"),
+                    dmc.Chip("Man", value="MALE"),
+                    dmc.Chip("Women", value="FEMALE"),
                 ]
             ),
             multiple=False,
@@ -56,5 +56,5 @@ class UserSexInput(BaseComponent):
 class RememberMe(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.Checkbox(
-            label="Запомнить меня", checked=True, id=self.component_id, **kwargs
+            label="Remember me", checked=True, id=self.component_id, **kwargs
         )

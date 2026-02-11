@@ -26,7 +26,7 @@ def LoginForm(next_page="/"):
             dmc.Group(
                 [
                     RememberMe(namespace=namespace)(),
-                    dmc.Anchor("Забыли пароль?", href="/forgot_pwd"),
+                    dmc.Anchor("Forgot password", href="/forgot_pwd"),
                 ],
                 justify="space-between",
             ),
@@ -50,7 +50,7 @@ def login(n_clicks, email, password, remember=True, next_page="/"):
     if n_clicks and email and password:
         user = back.user.auth(email=email, password=password)
         if not user:
-            return dmc.Alert("Unsuccussfull login!", color="yellow")
+            return dmc.Alert("Unsuccessful login!", color="yellow")
         login_user(user, remember=remember)
         return dcc.Location(href=next_page, id="login-redirect")
     return no_update

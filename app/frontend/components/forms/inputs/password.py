@@ -11,7 +11,7 @@ class PwdInput(BaseComponent):
         if with_check:
             description = dmc.Group(
                 [
-                    dmc.Text("Сложность:", size="sm"),
+                    dmc.Text("Complexity:", size="sm"),
                     dmc.Rating(
                         id=self.suffix_component_id(suffix="Rating"),
                         fractions=2,
@@ -24,7 +24,7 @@ class PwdInput(BaseComponent):
         return dmc.PasswordInput(
             id=self.component_id,
             placeholder="**********",
-            label="Пароль",
+            label="Password",
             description=description,
             leftSection=DashIconify(icon="bi:shield-lock"),
             **kwargs,
