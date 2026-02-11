@@ -16,3 +16,10 @@ repos:
         types: [python]
         files: \.py$
         args: [--fix, --unsafe-fixes]
+
+      - id: pytest
+        name: pytest
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
