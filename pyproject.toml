@@ -11,6 +11,9 @@ dependencies = [
     "pydantic>=2.12.5",
     "dash-iconify>=0.1.2",
     "dash-mantine-components>=2.5.1",
+    "sqlalchemy>=2.0.46",
+    "alembic>=1.18.4",
+    "psycopg>=3.3.2",
 ]
 
 [dependency-groups]
