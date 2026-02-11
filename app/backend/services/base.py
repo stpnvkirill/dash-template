@@ -8,12 +8,11 @@ from app.backend.database import SessionManager
 class SqlService:
     model: DeclarativeBase
     primary_key: str
-    _sm: SessionManager
+    _sm: SessionManager = SessionManager()
 
     def __init__(self, model, primary_key="id"):
         self.model = model
         self.primary_key = primary_key
-        self._sm = SessionManager()
 
     @property
     def session(self):
