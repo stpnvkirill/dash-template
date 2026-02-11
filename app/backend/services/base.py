@@ -56,6 +56,16 @@ class SqlService:
             stmt = pg_insert(self.model).values(data).returning(self.model)
             return s.scalar(stmt)
 
+    def update(self, id, **data):
+        with self.session as s:
+            stmt = (
+                sa.update(self.model)
+                .where(getattr(self.model, self.primary_key) == id)
+                .values(**data)
+                .returning(self.model)
+            )
+            return s.scalar(stmt)
+
 
 class BaseService:
     pass
