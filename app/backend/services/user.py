@@ -1,7 +1,11 @@
+from typing import Literal
+from uuid import UUID
+
+import sqlalchemy as sa
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.backend.database.models import User
-from app.backend.domain import UserDto
+from app.backend.database.models import User, UserSession
+from app.backend.domain import SessionDto, UserDto
 
 from .base import BaseService, SqlService
 
@@ -9,6 +13,7 @@ from .base import BaseService, SqlService
 class UserService(BaseService):
     def __init__(self):
         self.UserSQL = SqlService(model=User)
+        self.SessionSQL = SqlService(model=UserSession)
         super().__init__()
 
     def check_email_is_available(self, email):
@@ -30,7 +35,7 @@ class UserService(BaseService):
         password: str,
         first_name: str,
         last_name: str,
-        sex: str = "NOT_SPECIFIED",
+        sex: Literal["MALE", "FEMALE", "NOT_SPECIFIED"] = "NOT_SPECIFIED",
     ):
         if not self.check_email_is_available(email=email.lower()):
             return None
@@ -52,3 +57,47 @@ class UserService(BaseService):
         user_model: User = self.UserSQL.get_by(email=email.lower())
         if user_model and check_password_hash(user_model.password, password):
             return self.to_dto(user_model)
+
+    def get_user_by_session(self, session_id: UUID):
+        with self.UserSQL.session as s:
+            update_subq = (
+                sa.update(UserSession)
+                .where(
+                    UserSession.id == session_id,
+                    UserSession.is_active,
+                )
+                .values(
+                    last_activity=sa.func.now(),
+                    request_count=UserSession.request_count + 1,
+                )
+                .returning(UserSession.user_id)
+                .cte("updated_session_ids")
+            )
+
+            stmt = sa.select(User).join(update_subq, User.id == update_subq.c.user_id)
+            user = s.scalar(stmt)
+            return self.to_dto(user)
+
+    def create_session(
+        self,
+        user: UserDto,
+        ip: str | None = None,
+        os: Literal["WINDOWS", "LINUX", "MACOS", "IOS", "ANDROID"] | None = None,
+    ):
+        session: UserSession = self.SessionSQL.insert(
+            user_id=user.id, ip_address=ip, os=os
+        )
+        if session:
+            return SessionDto(
+                id=session.id,
+                is_active=session.is_active,
+                os=session.os,
+                ip=session.ip_address,
+                user=user,
+            )
+
+    def deactivate_session(
+        self,
+        session_id: UUID,
+    ):
+        self.SessionSQL.update(id=session_id, is_active=False)
