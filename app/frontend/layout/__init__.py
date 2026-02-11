@@ -68,6 +68,7 @@ def AppShell():
                     "breakpoint": "sm",
                     "collapsed": {"mobile": True},
                 },
+                disabled=True,
             ),
         ],
     )
