@@ -41,3 +41,20 @@ def test_second_create_user(backend: Backend, user: UserTest):
         sex="MALE",
     )
     assert user_dto is None
+
+
+def test_session(backend: Backend, user: UserTest):
+    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    session = backend.user.create_session(user=user_dto, ip="0.0.0.0", os="LINUX")
+    assert session is not None
+    assert session.user.id == user_dto.id
+
+    user_dto_from_session = backend.user.get_user_by_session(session_id=session.id)
+    assert user_dto_from_session.id == user_dto.id
+
+    backend.user.deactivate_session(session_id=session.id)
+
+    user_dto_from_deactivate_session = backend.user.get_user_by_session(
+        session_id=session.id
+    )
+    assert user_dto_from_deactivate_session is None
