@@ -1,3 +1,8 @@
+from .services import UserService
+
+
 class Backend:
+    user: UserService
+
     def __init__(self):
-        pass
+        self.user = UserService()
