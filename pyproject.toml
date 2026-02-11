@@ -9,6 +9,8 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "orjson>=3.11.7",
     "pydantic>=2.12.5",
+    "dash-iconify>=0.1.2",
+    "dash-mantine-components>=2.5.1",
 ]
 
 [dependency-groups]

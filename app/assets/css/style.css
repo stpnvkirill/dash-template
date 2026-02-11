@@ -1,0 +1,21 @@
+/* DARK */
+:root[data-mantine-color-scheme="dark"] #dark-theme-icon {
+    display: none;
+}
+
+:root[data-mantine-color-scheme="dark"] {
+    --mantine-color-body: var(--mantine-color-black);
+    --ui-paper-color: var(--mantine-color-dark-9);
+}
+
+
+
+/* LIGHT */
+:root[data-mantine-color-scheme="light"] {
+    --mantine-color-body: var(--mantine-color-gray-0);
+    --ui-paper-color: var(--mantine-color-white)
+}
+
+:root[data-mantine-color-scheme="light"] #light-theme-icon {
+    display: none;
+}
