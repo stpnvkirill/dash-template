@@ -45,12 +45,18 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // Определяем ошибку
             let error = null;
             if (!hasMinLength) {
-                error = 'Минимум 8 символов';
+                error = 'Minimum of 8 characters';
             } else if (score < 3) {
-                error = 'Слишком слабый пароль';
+                error = 'The password is too weak';
             }
 
             return [score, error];
+        }
+    },
+    registration: {
+        'check_reg_inputs': function (pwd_error, email_error, pwd_value, email_value, first_name_value, last_name_value) {
+            const allFieldsFilled = pwd_value && email_value && first_name_value && last_name_value;
+            return !allFieldsFilled || pwd_error || email_error;
         }
     }
 });

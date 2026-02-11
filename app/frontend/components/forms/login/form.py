@@ -44,7 +44,7 @@ def LoginForm(next_page="/"):
     State(PwdInput.cid(namespace=namespace), "value"),
     State(RememberMe.cid(namespace=namespace), "value"),
     State(store.cid(namespace=namespace), "data"),
-    # hidden=True,
+    hidden=True,
 )
 def login(n_clicks, email, password, remember=True, next_page="/"):
     if n_clicks and email and password:
