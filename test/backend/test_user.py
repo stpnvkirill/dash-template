@@ -63,3 +63,36 @@ def test_session(backend: Backend, user: UserTest):
         session_id=user_with_session.session.id
     )
     assert user_dto_from_deactivate_session is None
+
+
+def test_update(backend: Backend, user: UserTest):
+    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    assert user_dto is not None
+
+    update_user = backend.user.update_user(
+        user_id=user_dto.id,
+        first_name="Test Update",
+        last_name="Test Update",
+        sex="FEMALE",
+        password="123",
+    )
+    assert update_user is not None
+    assert update_user.first_name == "Test Update"
+
+    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    assert user_dto is None
+
+    user_dto = backend.user.auth(email=user.email, password="123")
+    assert user_dto is not None
+    assert user_dto.first_name == "Test Update"
+    assert user_dto.last_name == "Test Update"
+    assert user_dto.sex == "FEMALE"
+
+    update_user = backend.user.update_user(
+        user_id=user_dto.id,
+        first_name="Test",
+        last_name="Test",
+        sex="FEMALE",
+        password=user.pwd,
+    )
+    assert update_user is not None
