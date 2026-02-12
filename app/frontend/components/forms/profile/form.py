@@ -105,6 +105,10 @@ def update_profile(n, firstname, lastname, sex, pwd):
             "notification-container",
             {"sendNotifications": patched_notify},
         )
+        set_props(
+            "user-section-navbar",
+            {"label": f"{user.first_name} {user.last_name}"},
+        )
         return ""
 
 

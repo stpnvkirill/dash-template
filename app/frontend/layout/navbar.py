@@ -1,11 +1,13 @@
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
+from flask_login import current_user
 
 
 def UserSection():
     return dmc.NavLink(
-        label="User Name",
-        description="username@email.com",
+        id="user-section-navbar",
+        label=f"{current_user.first_name} {current_user.last_name}",
+        description=current_user.email,
         bdrs=0,
         m=0,
         leftSection=dmc.ActionIcon(
@@ -25,6 +27,8 @@ def get_icon(icon, variant="light"):
 
 
 def NavBar():
+    if current_user.is_anonymous:
+        return dmc.Box()
     return dmc.AppShellNavbar(
         p=0,
         bg="var(--ui-paper-color)",
