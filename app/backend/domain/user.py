@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID
 
 from flask_login import UserMixin
@@ -18,6 +19,11 @@ class UserDto(UserMixin):
 
     def get_id(self):
         return self.session.id
+
+    @property
+    def created_at(self) -> datetime:
+        timestamp_ms = self.id.int >> 80
+        return datetime.fromtimestamp(timestamp_ms / 1000.0, tz=UTC)
 
 
 @dataclass(slots=True)

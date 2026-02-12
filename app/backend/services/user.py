@@ -108,3 +108,22 @@ class UserService(BaseService):
         session_id: UUID,
     ):
         self.SessionSQL.update(id=session_id, is_active=False)
+
+    def update_user(
+        self,
+        user_id: UUID,
+        first_name: str,
+        last_name: str,
+        sex: str,
+        password: str | None = None,
+    ):
+        data = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "sex": sex or "NOT_SPECIFIED",
+        }
+        if password:
+            hashed_password = generate_password_hash(password, method="pbkdf2")
+            data["password"] = hashed_password
+        user_model = self.UserSQL.update(id=user_id, **data)
+        return self.to_dto(user_model)

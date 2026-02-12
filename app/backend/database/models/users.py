@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 from enum import Enum
 import uuid
 
@@ -61,9 +60,3 @@ class User(Base, UpdatedMixin):
         server_default=GenderEnum.NOT_SPECIFIED.value,
         default=GenderEnum.NOT_SPECIFIED,
     )
-
-    @property
-    def created_at(self) -> datetime:
-        """Извлекает timestamp из UUIDv7"""
-        timestamp_ms = self.id.int >> 80
-        return datetime.fromtimestamp(timestamp_ms / 1000.0, tz=UTC)
