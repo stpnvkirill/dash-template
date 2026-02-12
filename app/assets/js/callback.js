@@ -58,5 +58,13 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             const allFieldsFilled = pwd_value && email_value && first_name_value && last_name_value;
             return !allFieldsFilled || pwd_error || email_error;
         }
+    },
+    profile: {
+        check_pwd: function (error) {
+            if (error) {
+                return true;
+            }
+            return false
+        }
     }
 });

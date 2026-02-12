@@ -58,6 +58,10 @@ def AppShell():
                     dmc.AppShellMain(
                         [
                             dmc.Container(page_container),
+                            dmc.NotificationContainer(
+                                id="notification-container",
+                                sendNotifications=[],
+                            ),
                         ],
                     ),
                 ],
