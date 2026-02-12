@@ -1,0 +1,131 @@
+name: "🐛 Bug Report"
+description: "Report a bug in the Dash+Flask template with auth & PostgreSQL"
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thanks for reporting a bug! 🙏
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: "📋 Application Layer"
+      options:
+        - 🎨 Frontend / Dash
+        - ⚙️ Backend / Services
+        - 🗄️ Database
+        - 🛡️ Middleware
+        - 🐳 DevOps
+        - 📚 Documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: setup
+    attributes:
+      label: "🚀 Installation Method"
+      options:
+        - 🐍 Local (uv + PostgreSQL)
+        - 🐳 Docker Compose
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "👣 Steps to Reproduce"
+      description: "How do you trigger this bug?"
+      placeholder: |
+        1. Clone repository
+        2. Create `.env` from `.env.example`
+        3. Run `uv run main.py`
+        4. Open http://localhost:8050
+        5. Click 'Register'
+        6. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "✅ Expected Behavior"
+      description: "What should have happened?"
+      placeholder: |
+        - New user created in database
+        - User automatically logged in
+        - Redirect to profile page
+        - Success message displayed
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "❌ Actual Behavior"
+      description: "What actually happened?"
+      placeholder: |
+        - 500 Internal Server Error
+        - User not created in database
+        - Console shows SQLAlchemy error
+        - Page shows "Server Error"
+    validations:
+      required: true
+
+  - type: input
+    id: file_location
+    attributes:
+      label: "📁 Error File Location"
+      description: "If you know where the error occurred"
+      placeholder: "app/backend/services/user.py:42"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "🖥️ Error Logs"
+      description: "Paste the full error traceback from your terminal"
+      placeholder: |
+        Traceback (most recent call last):
+          ...
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "💻 Environment"
+      value: |
+        **OS:**
+        **PostgreSQL:** 18
+        **Browser:**
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: "⚙️ .env Configuration"
+      description: "Paste your `.env` file (replace secrets with ***)"
+      render: bash
+    validations:
+      required: false
+
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✅ Self-Checklist"
+      options:
+        - label: "I created `.env`"
+        - label: "PostgreSQL is running (`pg_isready`)"
+        - label: "Database exists (`createdb` or `psql -l`)"
+        - label: "Migrations applied (`uv run alembic upgrade head`)"
+        - label: "Dependencies installed (`uv sync`)"
+        - label: "Using latest template version (`git pull`)"
+        - label: "This bug is in the template, not my custom code"
+    validations:
+      required: true

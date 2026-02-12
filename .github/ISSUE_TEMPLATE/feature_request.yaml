@@ -1,0 +1,52 @@
+name: "✨ Feature Request"
+description: "Suggest an improvement for the template"
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💡 Thanks for your idea!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "🎯 What problem does this solve?"
+      description: "What can't users do today?"
+      placeholder: |
+        Users can only login with email/password.
+        Corporate clients expect Google login.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "✅ What should change?"
+      description: "How will users benefit?"
+      placeholder: |
+        Login page should have "Continue with Google" button.
+        Users can login with their Google account.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "🎯 How do we know it's done?"
+      description: "Concrete checklist of what should work"
+      placeholder: |
+        - [ ] Google button appears on login page
+        - [ ] Clicking it redirects to Google
+        - [ ] New users can register via Google
+        - [ ] Existing users can link Google account
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: "💭 Suggested implementation (optional)"
+      description: "Only if you have technical ideas"
+    validations:
+      required: false
