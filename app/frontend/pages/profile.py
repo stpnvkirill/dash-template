@@ -1,4 +1,4 @@
-from dash import register_page, set_props
+from dash import register_page
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 from flask_login import current_user
@@ -15,7 +15,6 @@ register_page(
 def layout(**kwargs):  # noqa: ARG001
     if not current_user.is_authenticated:
         raise UserNotAuthenticated()
-    set_props(component_id="app-shell", props={"disabled": False})
     return dmc.Container(
         size=800,
         children=[

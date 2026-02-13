@@ -43,5 +43,4 @@ def layout(**kwargs):
         return dash.dcc.Location(
             pathname=kwargs.get("next", "/"), id="redirect-to-login"
         )
-    dash.set_props(component_id="app-shell", props={"disabled": True})
     return login_form(next_page=kwargs.get("next", "/"))

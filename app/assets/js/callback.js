@@ -66,5 +66,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             }
             return false
         }
+    },
+    i18n: {
+        internalize: function (locale, text_id) { return locale?.[text_id.id] || '?' }
     }
 });

@@ -9,6 +9,8 @@ from dash import (
 )
 import dash_mantine_components as dmc
 
+from app.frontend.components.locale import LocaleStore
+
 from .header import Header
 from .navbar import NavBar
 from .theme import THEME
@@ -51,6 +53,7 @@ def AppShell():
         theme=THEME,
         children=[
             dcc.Store(id="theme-store", storage_type="local"),
+            LocaleStore(),
             dmc.AppShell(
                 [
                     Header(),
@@ -68,11 +71,9 @@ def AppShell():
                 id="app-shell",
                 header={"height": 60},
                 navbar={
-                    "width": 300,
                     "breakpoint": "sm",
                     "collapsed": {"mobile": True},
                 },
-                disabled=True,
             ),
         ],
     )

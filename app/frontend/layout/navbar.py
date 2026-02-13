@@ -30,6 +30,7 @@ def NavBar():
     if current_user.is_anonymous:
         return dmc.Box()
     return dmc.AppShellNavbar(
+        w=300,
         p=0,
         bg="var(--ui-paper-color)",
         children=[

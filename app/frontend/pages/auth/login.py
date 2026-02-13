@@ -42,5 +42,4 @@ def login_form(next_page):
 def layout(**kwargs):
     if current_user.is_authenticated:
         raise UserIsAuthenticated(next_page=kwargs.get("next", "/"))
-    dash.set_props(component_id="app-shell", props={"disabled": True})
     return login_form(next_page=kwargs.get("next", "/"))
