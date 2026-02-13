@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pathlib import Path
 
 from dash import (
@@ -12,6 +13,8 @@ from dash import (
     html,
 )
 import orjson
+
+from config import config
 
 
 def _l(text_id):
@@ -32,7 +35,7 @@ def LocaleStore():
 @callback(
     Output("locale-store", "data"), Input("locale-selector", "value"), hidden=True
 )
-# @lru_cache
+@lru_cache(maxsize=config.server.LRU_CACHE_MAXSIZE)
 def load_translate(locale):
     try:
         with Path(f"./i18n/{locale}.json").open() as fp:
