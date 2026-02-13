@@ -16,5 +16,13 @@
     "regpage_description": "It will take a little information about you",
     "regform_back_to_login": "Back to the login page",
     "btn_login": "Login",
-    "btn_reg": "Create account"
+    "btn_reg": "Create account",
+    "profilepage_tab_profile_name": "Profile",
+    "profilepage_tab_permission_name": "Permission",
+    "profilepage_tab_sessions_name": "Sessions",
+    "profileform_account_created": "Account created: ",
+    "profileform_user_id": "ID: ",
+    "profileform_save_btn": "Save",
+    "profileform_logout_btn": "Logout",
+    "notify_dataupdate": "The data has been updated"
 }

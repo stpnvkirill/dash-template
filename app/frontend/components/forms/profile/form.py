@@ -23,6 +23,7 @@ from app.frontend.components.forms.inputs.user_attr import (
     UserLastNameInput,
     UserSexInput,
 )
+from app.frontend.components.locale import _l
 
 from .btn import ProfileLogoutButton, ProfileSaveButton
 
@@ -52,11 +53,14 @@ def ProfileForm(user: UserDto):
             ProfileSaveButton(namespace=namespace)(),
             ProfileRespBox(),
             dmc.Text(
-                "Аккаунт создан: " + user.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                [
+                    _l("profileform_account_created"),
+                    user.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                ],
                 pt="md",
                 ta="center",
             ),
-            dmc.Text(f"Идентификатор: {user.id}", ta="center"),
+            dmc.Text([_l("profileform_user_id"), str(user.id)], ta="center"),
             ProfileLogoutButton(namespace=namespace)(),
         ]
     )
@@ -95,10 +99,11 @@ def update_profile(n, firstname, lastname, sex, pwd):
             {
                 "action": "show",
                 "id": str(uuid7()),
-                "message": "Данные обновлены",
+                # TODO: not work "message":_l("notify_dataupdate")
+                "message": "The data has been updated",
                 "withCloseButton": True,
-                "autoClose": 3500,
                 "color": "green",
+                "autoClose": 3500,
             }
         )
         set_props(

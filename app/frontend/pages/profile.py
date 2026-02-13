@@ -5,6 +5,7 @@ from flask_login import current_user
 
 from app.error import UserNotAuthenticated
 from app.frontend.components.forms import ProfileForm
+from app.frontend.components.locale import _l
 
 register_page(
     __name__,
@@ -23,18 +24,18 @@ def layout(**kwargs):  # noqa: ARG001
                     dmc.TabsList(
                         [
                             dmc.TabsTab(
-                                "Profile",
+                                _l("profilepage_tab_profile_name"),
                                 value="profile",
                                 leftSection=DashIconify(icon="tabler:photo"),
                             ),
                             dmc.TabsTab(
-                                "Permission",
+                                _l("profilepage_tab_permission_name"),
                                 value="permission",
                                 leftSection=DashIconify(icon="tabler:settings"),
                                 disabled=True,
                             ),
                             dmc.TabsTab(
-                                "Sessions",
+                                _l("profilepage_tab_sessions_name"),
                                 value="sessions",
                                 leftSection=DashIconify(icon="tabler:lock"),
                                 disabled=True,
