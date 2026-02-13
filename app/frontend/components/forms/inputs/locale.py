@@ -14,7 +14,7 @@ def LanguagePicker():
         persistence=True,
         rightSection=None,
         withCheckIcon=False,
-        variant="unstaled",
+        variant="filled",
         clearable=False,
         allowDeselect=False,
     )
