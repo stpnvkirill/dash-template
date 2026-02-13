@@ -1,3 +1,20 @@
 {
-    "forgot_password_link": "Forgot password link?"
+    "forgot_password_link": "Forgot password link?",
+    "password_input_label": "Password",
+    "password_complexity_label": "Complexity:",
+    "email_input_label": "Email",
+    "firstname_input_label": "First Name",
+    "lastname_input_label": "Last Name",
+    "usersex_input_label_man": "Man",
+    "usersex_input_label_woman": "Woman",
+    "rememberme_checkbox_label": "Remember me",
+    "loginpage_title": "Welcome back!",
+    "loginpage_not_account_text": "Do not have an account yet? ",
+    "loginpage_not_account_textlink": "Create account",
+    "loginform_forgot_password": "Forgot password?",
+    "regpage_title": "Registration in the system",
+    "regpage_description": "It will take a little information about you",
+    "regform_back_to_login": "Back to the login page",
+    "btn_login": "Login",
+    "btn_reg": "Create account"
 }

@@ -1,4 +1,3 @@
-from functools import lru_cache
 from pathlib import Path
 
 from dash import (
@@ -16,7 +15,12 @@ import orjson
 
 
 def _l(text_id):
-    return html.Div(id={"type": "i18n", "id": text_id})
+    return html.Div(
+        id={"type": "i18n", "id": text_id},
+        style={
+            "display": "inline",
+        },
+    )
 
 
 def LocaleStore():
@@ -28,7 +32,7 @@ def LocaleStore():
 @callback(
     Output("locale-store", "data"), Input("locale-selector", "value"), hidden=True
 )
-@lru_cache
+# @lru_cache
 def load_translate(locale):
     try:
         with Path(f"./i18n/{locale}.json").open() as fp:

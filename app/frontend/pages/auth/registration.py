@@ -3,6 +3,7 @@ import dash_mantine_components as dmc
 from flask_login import current_user
 
 from app.frontend.components.forms import RegForm
+from app.frontend.components.locale import _l
 
 dash.register_page(__name__, path="/reg")
 
@@ -14,12 +15,10 @@ def login_form(next_page):
             dmc.GridCol(
                 dmc.Stack(
                     [
-                        dmc.Title(
-                            "Registration in the system", order=2, w="100%", ta="center"
-                        ),
+                        dmc.Title(_l("regpage_title"), order=2, w="100%", ta="center"),
                         dmc.Text(
                             [
-                                "It will take a little information about you",
+                                _l("regpage_description"),
                             ],
                             w="100%",
                             ta="center",
