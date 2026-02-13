@@ -8,6 +8,7 @@ from dash import (
     page_container,
 )
 import dash_mantine_components as dmc
+from flask_login import current_user
 
 from app.frontend.components.locale import LocaleStore
 
@@ -71,6 +72,7 @@ def AppShell():
                 id="app-shell",
                 header={"height": 60},
                 navbar={
+                    "width": 0 if current_user.is_anonymous else 300,
                     "breakpoint": "sm",
                     "collapsed": {"mobile": True},
                 },
