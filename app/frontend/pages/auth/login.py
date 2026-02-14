@@ -4,6 +4,7 @@ from flask_login import current_user
 
 from app.error import UserIsAuthenticated
 from app.frontend.components.forms import LoginForm
+from app.frontend.components.locale import _l
 
 dash.register_page(__name__, path="/login")
 
@@ -15,11 +16,17 @@ def login_form(next_page):
             dmc.GridCol(
                 dmc.Stack(
                     [
-                        dmc.Title("Welcome back!", order=2, w="100%", ta="center"),
+                        dmc.Title(
+                            _l("loginpage_title"), order=2, w="100%", ta="center"
+                        ),
                         dmc.Text(
                             [
-                                "Do not have an account yet? ",
-                                dmc.Anchor("Create account", href="/reg"),
+                                _l("loginpage_not_account_text"),
+                                dmc.Anchor(
+                                    _l("loginpage_not_account_textlink"),
+                                    href="/reg",
+                                    display="inline",
+                                ),
                             ],
                             w="100%",
                             ta="center",
@@ -42,5 +49,4 @@ def login_form(next_page):
 def layout(**kwargs):
     if current_user.is_authenticated:
         raise UserIsAuthenticated(next_page=kwargs.get("next", "/"))
-    dash.set_props(component_id="app-shell", props={"disabled": True})
     return login_form(next_page=kwargs.get("next", "/"))

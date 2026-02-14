@@ -21,6 +21,7 @@ from app.frontend.components.forms.inputs.user_attr import (
     UserLastNameInput,
     UserSexInput,
 )
+from app.frontend.components.locale import _l
 from app.frontend.components.store import Store
 
 from .btn import RegButton
@@ -46,7 +47,7 @@ def RegForm(next_page="/"):
                 [
                     RememberMe(namespace=namespace)(),
                     dmc.Anchor(
-                        dmc.Text("Back to the login page", size="xs"), href="/login"
+                        dmc.Text(_l("regform_back_to_login"), size="xs"), href="/login"
                     ),
                 ],
                 justify="space-between",

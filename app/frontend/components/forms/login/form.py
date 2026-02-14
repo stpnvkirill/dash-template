@@ -6,6 +6,7 @@ from app.backend import back
 from app.frontend.components.box import Box
 from app.frontend.components.forms.inputs.password import PwdInput
 from app.frontend.components.forms.inputs.user_attr import RememberMe, UserEmailInput
+from app.frontend.components.locale import _l
 from app.frontend.components.store import Store
 
 from .btn import LoginButton
@@ -26,7 +27,7 @@ def LoginForm(next_page="/"):
             dmc.Group(
                 [
                     RememberMe(namespace=namespace)(),
-                    dmc.Anchor("Forgot password", href="/forgot_pwd"),
+                    dmc.Anchor(_l("loginform_forgot_password"), href="/forgot_pwd"),
                 ],
                 justify="space-between",
             ),
