@@ -1,3 +1,6 @@
+dayjs.extend(dayjs_plugin_relativeTime);
+dayjs.extend(dayjs_plugin_localizedFormat)
+
 window.dash_clientside = Object.assign({}, window.dash_clientside, {
     app_shell: {
         // Dark/Light theme
@@ -68,6 +71,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         }
     },
     i18n: {
-        internalize: function (locale, text_id) { return locale?.[text_id.id] || '?' }
+        internalize: function (translate, text_id) { return translate?.[text_id.id] || '?' },
+        internalize_dt: function (locale, idx) {
+            const dt = dayjs(idx.timestamp)
+            return dt.locale(locale).format(idx.format)
+        },
+        internalize_dt_relative: function (locale, idx) {
+            const dt = dayjs(idx.timestamp)
+            return dt.locale(locale).fromNow()
+        }
     }
 });

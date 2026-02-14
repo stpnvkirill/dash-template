@@ -23,7 +23,7 @@ from app.frontend.components.forms.inputs.user_attr import (
     UserLastNameInput,
     UserSexInput,
 )
-from app.frontend.components.locale import _l
+from app.frontend.components.locale import _l, _l_dt, _l_dt_relative
 
 from .btn import ProfileLogoutButton, ProfileSaveButton
 
@@ -55,7 +55,9 @@ def ProfileForm(user: UserDto):
             dmc.Text(
                 [
                     _l("profileform_account_created"),
-                    user.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                    _l_dt(user.created_at, "L LT"),
+                    " || ",
+                    _l_dt_relative(user.created_at),
                 ],
                 pt="md",
                 ta="center",
