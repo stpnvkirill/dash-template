@@ -19,6 +19,15 @@ class UserService(BaseService):
     def check_email_is_available(self, email):
         return not self.UserSQL.get_by(email=email)
 
+    def to_session_dto(self, session: UserSession):
+        return SessionDto(
+            id=session.id,
+            is_active=session.is_active,
+            os=session.os.name if session.os else None,
+            ip=session.ip_address,
+            last_active=session.last_activity,
+        )
+
     def to_dto(self, user_model: User | UserDto, session: UserSession = None):
         if user_model:
             return UserDto(
@@ -29,14 +38,7 @@ class UserService(BaseService):
                 sex=user_model.sex
                 if isinstance(user_model.sex, str)
                 else user_model.sex.value,
-                session=SessionDto(
-                    id=session.id,
-                    is_active=session.is_active,
-                    os=session.os,
-                    ip=session.ip_address,
-                )
-                if session is not None
-                else None,
+                session=self.to_session_dto(session) if session is not None else None,
             )
 
     def create_user(
@@ -127,3 +129,8 @@ class UserService(BaseService):
             data["password"] = hashed_password
         user_model = self.UserSQL.update(id=user_id, **data)
         return self.to_dto(user_model)
+
+    def get_active_session(self, user_id: UUID, exclude_id: UUID | None = None):
+        conditions = [UserSession.id != exclude_id] if exclude_id else []
+        sessions = self.SessionSQL.select(*conditions, is_active=True, user_id=user_id)
+        return [self.to_session_dto(s) for s in sessions]

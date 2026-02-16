@@ -32,3 +32,4 @@ class SessionDto:
     is_active: bool
     os: str
     ip: str
+    last_active: datetime

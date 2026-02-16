@@ -34,9 +34,13 @@ class SqlService:
             )
             return s.scalar(stmt)
 
-    def select(self, *conditions):
+    def select(self, *conditions, **kwargs):
         with self.session as s:
-            stmt = sa.select(self.model).where(*conditions)
+            stmt = (
+                sa.select(self.model)
+                .where(*conditions)
+                .where(*[getattr(self.model, k) == v for k, v in kwargs.items()])
+            )
             return list(s.scalars(stmt))
 
     def upsert(self, id, **data):
