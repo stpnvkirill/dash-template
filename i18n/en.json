@@ -23,5 +23,7 @@
     "profileform_user_id": "ID: ",
     "profileform_save_btn": "Save",
     "profileform_logout_btn": "Logout",
-    "notify_dataupdate": "The data has been updated"
+    "notify_dataupdate": "The data has been updated",
+    "alert_unsuccessful_login": "Unsuccessful login!",
+    "alert_unsuccessful_reguser": "An error occurred when creating a user"
 }

@@ -23,5 +23,7 @@
     "profileform_user_id": "ID: ",
     "profileform_save_btn": "Сохранить",
     "profileform_logout_btn": "Выйти",
-    "notify_dataupdate": "Данные обновлены"
+    "notify_dataupdate": "Данные обновлены",
+    "alert_unsuccessful_login": "Неудачный вход в систему!",
+    "alert_unsuccessful_reguser": "При создании пользователя произошла ошибка."
 }

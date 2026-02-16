@@ -51,7 +51,7 @@ def login(n_clicks, email, password, remember=True, next_page="/"):
     if n_clicks and email and password:
         user = back.user.auth(email=email, password=password)
         if not user:
-            return dmc.Alert("Unsuccessful login!", color="yellow")
+            return dmc.Alert(_l("alert_unsuccessful_login"), color="yellow")
         login_user(user, remember=remember)
         return dcc.Location(href=next_page, id="login-redirect")
     return no_update
