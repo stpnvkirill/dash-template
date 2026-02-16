@@ -1,5 +1,8 @@
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
+from flask_login import current_user
+
+from app.frontend.components.forms.inputs.locale import LanguagePicker
 
 
 def ChangeColorIcon():
@@ -25,6 +28,8 @@ def ChangeColorIcon():
 
 
 def CallNavbarIcon():
+    if current_user.is_anonymous:
+        return dmc.Box(display="none")
     return dmc.Burger(id="burger", size="sm", hiddenFrom="sm", opened=False)
 
 
@@ -60,7 +65,7 @@ def Header():
                 ),
                 dmc.Group(
                     justify="flex-end",
-                    children=[ChangeColorIcon(), CallNavbarIcon()],
+                    children=[LanguagePicker(), ChangeColorIcon(), CallNavbarIcon()],
                 ),
             ],
         ),

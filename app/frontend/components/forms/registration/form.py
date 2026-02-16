@@ -21,6 +21,7 @@ from app.frontend.components.forms.inputs.user_attr import (
     UserLastNameInput,
     UserSexInput,
 )
+from app.frontend.components.locale import _l
 from app.frontend.components.store import Store
 
 from .btn import RegButton
@@ -46,7 +47,7 @@ def RegForm(next_page="/"):
                 [
                     RememberMe(namespace=namespace)(),
                     dmc.Anchor(
-                        dmc.Text("Back to the login page", size="xs"), href="/login"
+                        dmc.Text(_l("regform_back_to_login"), size="xs"), href="/login"
                     ),
                 ],
                 justify="space-between",
@@ -107,7 +108,7 @@ def reg_user_callback(n_clicks, email, first_name, last_name, sex, password, nex
             sex=sex,
         )
         if not user:
-            return "An error occurred when creating a user"
+            return dmc.Alert(_l("alert_unsuccessful_reguser"), color="yellow")
         user = back.user.create_session(user=user)
         login_user(user)
         return dcc.Location(href=next_page, id="login-redirect")

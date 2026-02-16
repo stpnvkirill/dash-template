@@ -2,12 +2,13 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
 from app.frontend.components.base import BaseComponent
+from app.frontend.components.locale import _l
 
 
 class UserEmailInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="Email",
+            label=_l("email_input_label"),
             placeholder="ivan@developer.ru",
             leftSection=DashIconify(icon="ic:round-alternate-email"),
             id=self.component_id,
@@ -18,7 +19,7 @@ class UserEmailInput(BaseComponent):
 class UserFirstNameInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="First Name",
+            label=_l("firstname_input_label"),
             placeholder="John",
             leftSection=DashIconify(icon="radix-icons:person"),
             id=self.component_id,
@@ -29,7 +30,7 @@ class UserFirstNameInput(BaseComponent):
 class UserLastNameInput(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.TextInput(
-            label="Last Name",
+            label=_l("lastname_input_label"),
             placeholder="Smith",
             leftSection=DashIconify(icon="radix-icons:person"),
             id=self.component_id,
@@ -42,8 +43,8 @@ class UserSexInput(BaseComponent):
         return dmc.ChipGroup(
             dmc.Group(
                 [
-                    dmc.Chip("Man", value="MALE"),
-                    dmc.Chip("Women", value="FEMALE"),
+                    dmc.Chip(_l("usersex_input_label_man"), value="MALE"),
+                    dmc.Chip(_l("usersex_input_label_woman"), value="FEMALE"),
                 ]
             ),
             multiple=False,
@@ -56,5 +57,8 @@ class UserSexInput(BaseComponent):
 class RememberMe(BaseComponent):
     def __call__(self, **kwargs):
         return dmc.Checkbox(
-            label="Remember me", checked=True, id=self.component_id, **kwargs
+            label=_l("rememberme_checkbox_label"),
+            checked=True,
+            id=self.component_id,
+            **kwargs,
         )

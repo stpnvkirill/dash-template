@@ -1,4 +1,4 @@
-from dash import register_page, set_props
+from dash import register_page
 from flask_login import current_user
 
 from app.error import UserNotAuthenticated
@@ -12,5 +12,4 @@ register_page(
 def layout():
     if current_user.is_anonymous:
         raise UserNotAuthenticated
-    set_props(component_id="app-shell", props={"disabled": False})
     return ["Hello world"]

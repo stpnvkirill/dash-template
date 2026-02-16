@@ -3,6 +3,7 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
 from app.frontend.components.base import BaseComponent
+from app.frontend.components.locale import _l
 
 
 class PwdInput(BaseComponent):
@@ -11,7 +12,7 @@ class PwdInput(BaseComponent):
         if with_check:
             description = dmc.Group(
                 [
-                    dmc.Text("Complexity:", size="sm"),
+                    dmc.Text(_l("password_complexity_label"), size="sm"),
                     dmc.Rating(
                         id=self.suffix_component_id(suffix="Rating"),
                         fractions=2,
@@ -24,7 +25,7 @@ class PwdInput(BaseComponent):
         return dmc.PasswordInput(
             id=self.component_id,
             placeholder="**********",
-            label="Password",
+            label=_l("password_input_label"),
             description=description,
             leftSection=DashIconify(icon="bi:shield-lock"),
             **kwargs,
