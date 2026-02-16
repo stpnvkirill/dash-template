@@ -25,5 +25,8 @@
     "profileform_logout_btn": "Logout",
     "notify_dataupdate": "The data has been updated",
     "alert_unsuccessful_login": "Unsuccessful login!",
-    "alert_unsuccessful_reguser": "An error occurred when creating a user"
+    "alert_unsuccessful_reguser": "An error occurred when creating a user",
+    "404page_title": "Something is not right...",
+    "404page_text": "Page you are trying to open does not exist. You may have mistyped the address, or the page has been moved to another URL. If you think this is an error contact support.",
+    "404page_btn": "Get back to home page"
 }
