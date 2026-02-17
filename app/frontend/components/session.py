@@ -20,17 +20,10 @@ def SessionTab(user: UserDto):
 
 
 def SessionCard(session: SessionDto, with_terminate: bool = False):
-    icon_dct = {
-        "WINDOWS": "ri:windows-fill",
-        "LINUX": "ant-design:linux-outlined",
-        "MACOS": "gravity-ui:logo-macos",
-        "IOS": "ic:baseline-apple",
-        "ANDROID": "ic:baseline-android",
-    }
-    label = session.os or "Unknown device"
+    label = f"{session.os.capitalize()} | {session.browser.capitalize()}"
     return dmc.NavLink(
         id={"type": "session-card", "session_id": str(session.id)},
-        label=label.capitalize(),
+        label=label,
         description=[
             _l("profilepage_sessions_last_active"),
             _l_dt_relative(session.last_active),
@@ -38,7 +31,7 @@ def SessionCard(session: SessionDto, with_terminate: bool = False):
         bdrs="md",
         m=0,
         leftSection=dmc.ActionIcon(
-            DashIconify(icon=icon_dct.get(session.os, "stash:question")),
+            DashIconify(icon="lets-icons:user-scan"),
             variant="light",
             size="lg",
             radius="xl",
