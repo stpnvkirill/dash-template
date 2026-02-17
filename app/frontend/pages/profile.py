@@ -1,4 +1,4 @@
-from dash import register_page
+from dash import Input, Output, callback, register_page
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 from flask_login import current_user
@@ -42,18 +42,20 @@ def layout(**kwargs):  # noqa: ARG001
                             ),
                         ]
                     ),
-                    dmc.TabsPanel(
-                        ProfileForm(current_user),
-                        value="profile",
-                        pt="md",
-                    ),
-                    dmc.TabsPanel(
-                        SessionTab(current_user),
-                        value="sessions",
-                        pt="md",
-                    ),
                 ],
                 value="profile",
-            )
+                id="profilepage-tabs",
+            ),
+            dmc.Box(id="profilepage-tabbox", pt="md"),
         ],
     )
+
+
+@callback(Output("profilepage-tabbox", "children"), Input("profilepage-tabs", "value"))
+def render_tab_content(active):
+    if active == "profile":
+        return ProfileForm(current_user)
+    elif active == "sessions":
+        return SessionTab(current_user)
+
+    return dmc.Box()
