@@ -1,5 +1,4 @@
 import datetime as dt
-from enum import Enum
 from typing import ClassVar
 import uuid as uuid_lib
 
@@ -10,19 +9,36 @@ import sqlalchemy.orm as so
 from .shared import Base
 
 
-class OsEnum(Enum):
-    WINDOWS = "WINDOWS"
-    LINUX = "LINUX"
-    MACOS = "MACOS"
-    IOS = "IOS"
-    ANDROID = "ANDROID"
+class OS(Base):
+    __tablename__: ClassVar = "operating_systems"
+    __table_args__ = (
+        sa.CheckConstraint(
+            "name = LOWER(name)",
+            name="os_name_lowercase_check",
+        ),
+    )
+
+    id: so.Mapped[int] = so.mapped_column(
+        sa.SmallInteger,
+        primary_key=True,
+    )
+    name: so.Mapped[str] = so.mapped_column(unique=True)
 
 
-os_enum = sa.Enum(
-    OsEnum,
-    name="os_enum",
-    validate_strings=True,
-)
+class Browser(Base):
+    __tablename__: ClassVar = "browsers"
+    __table_args__ = (
+        sa.CheckConstraint(
+            "name = LOWER(name)",
+            name="browser_name_lowercase_check",
+        ),
+    )
+
+    id: so.Mapped[int] = so.mapped_column(
+        sa.SmallInteger,
+        primary_key=True,
+    )
+    name: so.Mapped[str] = so.mapped_column(unique=True)
 
 
 class UserSession(Base):
@@ -40,14 +56,21 @@ class UserSession(Base):
     )
 
     last_activity: so.Mapped[dt.datetime] = so.mapped_column(
+        sa.DateTime(timezone=True),
         server_default=sa.func.now(),
     )
     is_active: so.Mapped[bool] = so.mapped_column(server_default="true")
 
-    os: so.Mapped[OsEnum | None] = so.mapped_column(os_enum)
+    os_id: so.Mapped[int] = so.mapped_column(sa.SmallInteger, sa.ForeignKey(OS.id))
+    browser_id: so.Mapped[int] = so.mapped_column(
+        sa.SmallInteger, sa.ForeignKey(Browser.id)
+    )
     ip_address: so.Mapped[str | None] = so.mapped_column(INET)
     request_count: so.Mapped[sa.Integer] = so.mapped_column(
         sa.Integer,
         server_default="0",
         default=0,
     )
+
+    os: so.Mapped[OS] = so.relationship(lazy="joined")
+    browser: so.Mapped[Browser] = so.relationship(lazy="joined")
