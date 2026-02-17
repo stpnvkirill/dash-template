@@ -4,10 +4,10 @@ from uuid import UUID
 import sqlalchemy as sa
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.backend.database.models import User, UserSession
+from app.backend.database.models import OS, Browser, User, UserSession
 from app.backend.domain import SessionDto, UserDto
 
-from .base import BaseService, SqlService
+from .base import BaseService, SqlService, pg_insert
 
 
 class UserService(BaseService):
@@ -23,7 +23,8 @@ class UserService(BaseService):
         return SessionDto(
             id=session.id,
             is_active=session.is_active,
-            os=session.os.name if session.os else None,
+            os=session.os.name,
+            browser=session.browser.name,
             ip=session.ip_address,
             last_active=session.last_activity,
         )
@@ -65,10 +66,17 @@ class UserService(BaseService):
         user_model: User = self.UserSQL.get(id=id)
         return self.to_dto(user_model)
 
-    def auth(self, email, password):
+    def auth(
+        self,
+        email: str,
+        password: str,
+        ip: str | None,
+        os: str | None = None,
+        browser: str | None = None,
+    ):
         user_model: User = self.UserSQL.get_by(email=email.lower())
         if user_model and check_password_hash(user_model.password, password):
-            return self.create_session(user=user_model)
+            return self.create_session(user=user_model, ip=ip, os=os, browser=browser)
 
     def get_user_by_session(self, session_id: UUID):
         with self.UserSQL.session as s:
@@ -96,14 +104,46 @@ class UserService(BaseService):
     def create_session(
         self,
         user: UserDto | User,
-        ip: str | None = None,
-        os: Literal["WINDOWS", "LINUX", "MACOS", "IOS", "ANDROID"] | None = None,
+        ip: str | None,
+        os: str | None = None,
+        browser: str | None = None,
     ):
-        session: UserSession = self.SessionSQL.insert(
-            user_id=user.id, ip_address=ip, os=os
-        )
-        if session:
-            return self.to_dto(user_model=user, session=session)
+        with self.UserSQL.session as s:
+            os_name = sa.func.lower(os or "unknown")
+            os_cte = (
+                pg_insert(OS)
+                .values(name=os_name)
+                .on_conflict_do_update(index_elements=["name"], set_={"name": os_name})
+                .returning(OS.id)
+                .cte("os_cte")
+            )
+            browser_name = sa.func.lower(browser or "unknown")
+
+            browser_cte = (
+                pg_insert(Browser)
+                .values(name=browser_name)
+                .on_conflict_do_update(
+                    index_elements=["name"], set_={"name": browser_name}
+                )
+                .returning(Browser.id)
+                .cte("browser_cte")
+            )
+            session_id = s.scalar(
+                pg_insert(UserSession)
+                .values(
+                    user_id=user.id,
+                    ip_address=ip,
+                    os_id=sa.select(os_cte.c.id).scalar_subquery(),
+                    browser_id=sa.select(browser_cte.c.id).scalar_subquery(),
+                )
+                .returning(UserSession.id)
+            )
+            session: UserSession = s.scalar(
+                sa.select(UserSession).where(UserSession.id == session_id)
+            )
+            if session:
+                s.expunge(session)
+                return self.to_dto(user_model=user, session=session)
 
     def deactivate_session(
         self,

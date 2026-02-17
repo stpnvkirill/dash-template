@@ -54,6 +54,18 @@ class SqlService:
             )
             return s.scalar(stmt)
 
+    def insert_or_update(self, index_elements: list, only_stmt=False, **data):
+        stmt = (
+            pg_insert(self.model)
+            .values(data)
+            .on_conflict_do_update(index_elements=index_elements, set_=data)
+            .returning(self.model)
+        )
+        if only_stmt:
+            return stmt
+        with self.session as s:
+            return s.scalar(stmt)
+
     def insert(self, **data):
         with self.session as s:
             stmt = pg_insert(self.model).values(data).returning(self.model)
