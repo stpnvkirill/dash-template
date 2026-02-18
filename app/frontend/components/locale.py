@@ -21,7 +21,7 @@ from config import config
 
 def _l(text_id):
     return html.Div(
-        id={"type": "i18n", "id": text_id},
+        id={"type": "i18n", "id": text_id, "uuid": str(uuid4())},
         style={
             "display": "inline",
         },
@@ -79,9 +79,9 @@ def load_translate(locale):
 
 clientside_callback(
     ClientsideFunction("i18n", "internalize"),
-    Output({"type": "i18n", "id": MATCH}, "children"),
+    Output({"type": "i18n", "id": MATCH, "uuid": MATCH}, "children"),
     Input("locale-store", "data"),
-    State({"type": "i18n", "id": MATCH}, "id"),
+    State({"type": "i18n", "id": MATCH, "uuid": MATCH}, "id"),
     hidden=True,
 )
 

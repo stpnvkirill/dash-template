@@ -28,5 +28,10 @@
     "alert_unsuccessful_reguser": "An error occurred when creating a user",
     "404page_title": "Something is not right...",
     "404page_text": "Page you are trying to open does not exist. You may have mistyped the address, or the page has been moved to another URL. If you think this is an error contact support.",
-    "404page_btn": "Get back to home page"
+    "404page_btn": "Get back to home page",
+    "profilepage_sessions_last_active": "Last active: ",
+    "profilepage_sessions_block_legend": "Active",
+    "profilepage_sessions_block_current_legend": "Current",
+    "terminate_session_btn_children": "Terminate",
+    "terminate_all_session_btn_children": "Terminate All Other Sessions"
 }

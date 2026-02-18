@@ -31,4 +31,6 @@ class SessionDto:
     id: UUID
     is_active: bool
     os: str
+    browser: str
     ip: str
+    last_active: datetime

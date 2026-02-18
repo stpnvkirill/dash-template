@@ -9,6 +9,7 @@ from dash import (
     no_update,
 )
 import dash_mantine_components as dmc
+from flask import g
 from flask_login import login_user
 
 from app.backend import back
@@ -109,7 +110,13 @@ def reg_user_callback(n_clicks, email, first_name, last_name, sex, password, nex
         )
         if not user:
             return dmc.Alert(_l("alert_unsuccessful_reguser"), color="yellow")
-        user = back.user.create_session(user=user)
+
+        user = back.user.create_session(
+            user=user,
+            ip=g.ip_address,
+            os=g.user_agent.os.family,
+            browser=g.user_agent.browser.family,
+        )
         login_user(user)
         return dcc.Location(href=next_page, id="login-redirect")
     return no_update

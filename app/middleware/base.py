@@ -6,4 +6,4 @@ class BaseMiddlaware:
         pass
 
     def after(self, response: Response):
-        pass
+        return response

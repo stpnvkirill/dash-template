@@ -34,9 +34,13 @@ class SqlService:
             )
             return s.scalar(stmt)
 
-    def select(self, *conditions):
+    def select(self, *conditions, **kwargs):
         with self.session as s:
-            stmt = sa.select(self.model).where(*conditions)
+            stmt = (
+                sa.select(self.model)
+                .where(*conditions)
+                .where(*[getattr(self.model, k) == v for k, v in kwargs.items()])
+            )
             return list(s.scalars(stmt))
 
     def upsert(self, id, **data):
@@ -48,6 +52,18 @@ class SqlService:
                 .on_conflict_do_update(index_elements=[self.primary_key], set_=data)
                 .returning(self.model)
             )
+            return s.scalar(stmt)
+
+    def insert_or_update(self, index_elements: list, only_stmt=False, **data):
+        stmt = (
+            pg_insert(self.model)
+            .values(data)
+            .on_conflict_do_update(index_elements=index_elements, set_=data)
+            .returning(self.model)
+        )
+        if only_stmt:
+            return stmt
+        with self.session as s:
             return s.scalar(stmt)
 
     def insert(self, **data):

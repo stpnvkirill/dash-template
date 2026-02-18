@@ -1,5 +1,6 @@
 from dash import Input, Output, State, callback, dcc, no_update
 import dash_mantine_components as dmc
+from flask import g
 from flask_login import login_user
 
 from app.backend import back
@@ -49,7 +50,13 @@ def LoginForm(next_page="/"):
 )
 def login(n_clicks, email, password, remember=True, next_page="/"):
     if n_clicks and email and password:
-        user = back.user.auth(email=email, password=password)
+        user = back.user.auth(
+            email=email,
+            password=password,
+            ip=g.ip_address,
+            os=g.user_agent.os.family,
+            browser=g.user_agent.browser.family,
+        )
         if not user:
             return dmc.Alert(_l("alert_unsuccessful_login"), color="yellow")
         login_user(user, remember=remember)

@@ -28,5 +28,10 @@
     "alert_unsuccessful_reguser": "При создании пользователя произошла ошибка.",
     "404page_title": "Что-то здесь не так...",
     "404page_text": "Страница, которую вы пытаетесь открыть, не существует. Возможно, вы неправильно ввели адрес или страница была перемещена на другой URL. Если вы считаете, что это ошибка, обратитесь в службу поддержки.",
-    "404page_btn": "Вернуться на домашнюю страницу"
+    "404page_btn": "Вернуться на домашнюю страницу",
+    "profilepage_sessions_last_active": "Последняя активность: ",
+    "profilepage_sessions_block_legend": "Активные",
+    "profilepage_sessions_block_current_legend": "Текущая",
+    "terminate_session_btn_children": "Завершить",
+    "terminate_all_session_btn_children": "Завершить все остальные"
 }

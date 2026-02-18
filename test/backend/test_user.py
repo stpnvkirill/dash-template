@@ -28,7 +28,9 @@ def test_check_email(backend: Backend, user: UserTest):
 
 
 def test_auth(backend: Backend, user: UserTest):
-    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    user_dto = backend.user.auth(
+        email=user.email, password=user.pwd, ip="0.0.0.0", os=None, browser=None
+    )
     assert user_dto is not None
 
 
@@ -44,9 +46,11 @@ def test_second_create_user(backend: Backend, user: UserTest):
 
 
 def test_session(backend: Backend, user: UserTest):
-    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    user_dto = backend.user.auth(
+        email=user.email, password=user.pwd, ip="0.0.0.0", os=None, browser=None
+    )
     user_with_session = backend.user.create_session(
-        user=user_dto, ip="0.0.0.0", os="LINUX"
+        user=user_dto, ip="0.0.0.0", os=None, browser=None
     )
     assert user_with_session is not None
     assert user_with_session.session is not None
@@ -66,7 +70,9 @@ def test_session(backend: Backend, user: UserTest):
 
 
 def test_update(backend: Backend, user: UserTest):
-    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    user_dto = backend.user.auth(
+        email=user.email, password=user.pwd, ip="0.0.0.0", os=None, browser=None
+    )
     assert user_dto is not None
 
     update_user = backend.user.update_user(
@@ -79,10 +85,14 @@ def test_update(backend: Backend, user: UserTest):
     assert update_user is not None
     assert update_user.first_name == "Test Update"
 
-    user_dto = backend.user.auth(email=user.email, password=user.pwd)
+    user_dto = backend.user.auth(
+        email=user.email, password=user.pwd, ip="0.0.0.0", os=None, browser=None
+    )
     assert user_dto is None
 
-    user_dto = backend.user.auth(email=user.email, password="123")
+    user_dto = backend.user.auth(
+        email=user.email, password="123", ip="0.0.0.0", os=None, browser=None
+    )
     assert user_dto is not None
     assert user_dto.first_name == "Test Update"
     assert user_dto.last_name == "Test Update"
