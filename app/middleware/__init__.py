@@ -1,10 +1,11 @@
 from flask import Flask, Response
 
+from .logs import LoggingMiddleware, logging
 from .ua import UserAgentMiddleware
 
 
 def init_middlewares(app: Flask):
-    mlist = [UserAgentMiddleware()]
+    mlist = [UserAgentMiddleware(), LoggingMiddleware()]
 
     @app.before_request
     def before_request():
