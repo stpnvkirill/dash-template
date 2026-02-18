@@ -79,7 +79,13 @@ class LoggingMiddleware(BaseMiddlaware):
         g.request_id = str(uuid.uuid7())
 
     def after(self, response):
-        exclude_paths = ["/assets/", "/favicon.ico", "/_reload-hash"]
+        exclude_paths = [
+            "/assets/",
+            "/favicon.ico",
+            "/_reload-hash",
+            "/_dash-component-suites/",
+            "/_dash-dependencies",
+        ]
         if any(path in request.path for path in exclude_paths):
             return response
         duration_ms = round(
