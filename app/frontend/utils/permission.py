@@ -61,7 +61,37 @@ def _user_has_permissions(required: tuple[tuple[str, str], ...]) -> bool:
 
 
 def permission_required(*permissions: PermissionInput):
-    """Raise PermissionDenied if current_user lacks any listed permission."""
+    """Raise PermissionDenied if current_user lacks any listed permission.
+
+    This decorator checks if the current authenticated user has all specified
+    permissions before allowing access to the decorated function. If any
+    permission is missing, raises PermissionDenied exception.
+
+    Args:
+        *permissions: Permission specifications. Each can be:
+            - str: "category:key" or "category.key"
+            - tuple: (category, key)
+            - PermissionLike object with category and key attributes
+
+    Examples:
+        @permission_required("admin:users")
+        def delete_user(user_id):
+            # Only users with admin:users permission can access
+            pass
+
+        @permission_required(("admin", "users"), ("moderator", "content"))
+        def moderate_content(content_id):
+            # User needs BOTH admin:users AND moderator:content permissions
+            pass
+
+        @permission_required("dashboard.view")
+        def show_dashboard():
+            # Permission using dot notation
+            pass
+
+    Raises:
+        PermissionDenied: If user lacks any required permission or is not authenticated
+    """
 
     required_permissions = _normalize_permissions(permissions)
 
@@ -78,7 +108,35 @@ def permission_required(*permissions: PermissionInput):
 
 
 def hide_if_not_permission(*permissions: PermissionInput):
-    """Return an empty Box when the current user lacks any given permission."""
+    """Return an empty Box when the current user lacks any given permission.
+
+    This decorator conditionally renders UI components based on user permissions.
+    If the user lacks ANY of the specified permissions, returns an empty dmc.Box().
+    Otherwise, renders the original component.
+
+    Useful for hiding UI elements (buttons, menus, sections) that user shouldn't see.
+
+    Args:
+        *permissions: Permission specifications. Each can be:
+            - str: "category:key" or "category.key"
+            - tuple: (category, key)
+            - PermissionLike object with category and key attributes
+
+    Returns:
+        dmc.Box: Empty box if permissions missing, otherwise original component
+
+    Examples:
+        @hide_if_not_permission("admin:users")
+        def DeleteUserButton(user_id):
+            return dmc.Button("Delete User", color="red")
+
+        @hide_if_not_permission(("admin", "system"), ("moderator", "users"))
+        def AdminPanel():
+            return dmc.Card([dmc.Text("Admin Controls")])
+
+    Note:
+        User must be authenticated. Unauthenticated users will see empty boxes.
+    """
 
     required_permissions = _normalize_permissions(permissions)
 
