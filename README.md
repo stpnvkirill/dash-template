@@ -3,6 +3,7 @@
 Starter template for a **Plotly Dash** web app with authentication, user profile, and session management. Use it as a base to build dashboards and data apps without wiring auth and DB from scratch.
 
 **Goals:**
+
 - Ready-made auth (login, registration, sessions)
 - Profile page with session management (view/terminate sessions)
 - Clear split: Flask backend + Dash frontend (Mantine UI)
@@ -15,12 +16,15 @@ You need a PostgreSQL instance: local install, cloud (e.g. managed DB), or run o
 1. **Requirements:** Python 3.14+, [uv](https://docs.astral.sh/uv/).
 
 2. **Install deps and create `.env`:**
+
    ```bash
    uv sync
    ```
+
    Create a `.env` file in the project root (see variables below).
 
 3. **Set in `.env`:**
+
    ```env
    POSTGRES_HOST=localhost
    POSTGRES_PORT=5432
@@ -31,11 +35,13 @@ You need a PostgreSQL instance: local install, cloud (e.g. managed DB), or run o
    ```
 
 4. **Apply migrations and start:**
+
    ```bash
    uv run alembic upgrade head
    uv run main.py
    ```
-   App: http://localhost:8080
+
+   App: <http://localhost:8080>
 
 ## Run with Docker
 
@@ -46,4 +52,4 @@ When you run the full stack with Docker Compose, the **database starts automatic
 docker compose up --build
 ```
 
-App: http://localhost:8080 · DB port: 6432 (mapped from 5432).
+App: <http://localhost:8080> · DB port: 6432 (mapped from 5432).
