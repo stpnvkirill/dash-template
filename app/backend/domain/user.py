@@ -1,8 +1,16 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from uuid import UUID
 
 from flask_login import UserMixin
+
+
+@dataclass(slots=True)
+class PermissionGroupDto:
+    name: str
+    system_key: str | None
 
 
 @dataclass(slots=True)
@@ -17,6 +25,7 @@ class UserDto(UserMixin):
 
     session: SessionDto | None = None
     permissions: frozenset[tuple[str, str]] = field(default_factory=frozenset)
+    permission_groups: tuple[PermissionGroupDto, ...] = field(default_factory=tuple)
 
     def get_id(self):
         return self.session.id

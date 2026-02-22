@@ -1,1 +1,1 @@
-from .user import SessionDto, UserDto
+from .user import PermissionGroupDto, SessionDto, UserDto

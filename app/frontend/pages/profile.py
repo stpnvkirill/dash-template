@@ -6,6 +6,7 @@ from flask_login import current_user
 from app.error import UserNotAuthenticated
 from app.frontend.components.forms import ProfileForm
 from app.frontend.components.locale import _l
+from app.frontend.components.permissions_tab import PermissionsTab
 from app.frontend.components.session import SessionTab
 
 register_page(
@@ -38,7 +39,6 @@ def layout(**kwargs):  # noqa: ARG001
                                 _l("profilepage_tab_permission_name"),
                                 value="permission",
                                 leftSection=DashIconify(icon="tabler:settings"),
-                                disabled=True,
                             ),
                         ]
                     ),
@@ -57,5 +57,7 @@ def render_tab_content(active):
         return ProfileForm(current_user)
     elif active == "sessions":
         return SessionTab(current_user)
+    elif active == "permission":
+        return PermissionsTab(current_user)
 
     return dmc.Box()

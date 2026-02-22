@@ -8,13 +8,14 @@ from app.backend.database.models import (
     OS,
     Browser,
     Permission,
+    PermissionGroup,
     User,
     UserSession,
     permission_group_permissions,
     user_permission_groups,
     user_permissions,
 )
-from app.backend.domain import SessionDto, UserDto
+from app.backend.domain import PermissionGroupDto, SessionDto, UserDto
 
 from .base import BaseService, SqlService, pg_insert
 
@@ -78,6 +79,39 @@ class UserService(BaseService):
         with self.UserSQL.session as s:
             return execute_query(s)
 
+    def _load_permission_groups(
+        self,
+        user_id: UUID,
+        session: sa.orm.Session | None = None,
+    ) -> tuple[PermissionGroupDto, ...]:
+        """Fetch assigned permission groups (roles)."""
+        if not user_id:
+            return ()
+
+        def execute_query(s):
+            stmt = (
+                sa.select(PermissionGroup.name, PermissionGroup.system_key)
+                .select_from(
+                    user_permission_groups.join(
+                        PermissionGroup,
+                        user_permission_groups.c.group_id == PermissionGroup.id,
+                    )
+                )
+                .where(user_permission_groups.c.user_id == user_id)
+                .order_by(PermissionGroup.name)
+            )
+            rows = s.execute(stmt).all()
+            return tuple(
+                PermissionGroupDto(name=row.name, system_key=row.system_key)
+                for row in rows
+            )
+
+        if session is not None:
+            return execute_query(session)
+
+        with self.UserSQL.session as s:
+            return execute_query(s)
+
     def check_email_is_available(self, email):
         return not self.UserSQL.get_by(email=email)
 
@@ -96,6 +130,7 @@ class UserService(BaseService):
         user_model: User | UserDto,
         session: UserSession | None = None,
         permissions: frozenset[tuple[str, str]] | None = None,
+        permission_groups: tuple[PermissionGroupDto, ...] | None = None,
     ):
         if not user_model:
             return None
@@ -108,6 +143,14 @@ class UserService(BaseService):
             else self._load_permissions(user_model.id)
         )
 
+        resolved_groups = (
+            permission_groups
+            if permission_groups is not None
+            else user_model.permission_groups
+            if isinstance(user_model, UserDto)
+            else self._load_permission_groups(user_model.id)
+        )
+
         return UserDto(
             id=user_model.id,
             email=user_model.email,
@@ -118,6 +161,7 @@ class UserService(BaseService):
             else user_model.sex.value,
             session=self.to_session_dto(session) if session is not None else None,
             permissions=resolved_permissions,
+            permission_groups=resolved_groups,
         )
 
     def create_user(
@@ -158,6 +202,7 @@ class UserService(BaseService):
 
     def get_user_by_session(self, session_id: UUID):
         permissions: frozenset[tuple[str, str]] = frozenset()
+        permission_groups: tuple[PermissionGroupDto, ...] = ()
         with self.UserSQL.session as s:
             update_subq = (
                 sa.update(UserSession)
@@ -180,7 +225,13 @@ class UserService(BaseService):
             )
             if user:
                 permissions = self._load_permissions(user.id, session=s)
-        return self.to_dto(user, session, permissions=permissions)
+                permission_groups = self._load_permission_groups(user.id, session=s)
+        return self.to_dto(
+            user,
+            session,
+            permissions=permissions,
+            permission_groups=permission_groups,
+        )
 
     def create_session(
         self,
@@ -223,10 +274,14 @@ class UserService(BaseService):
                 sa.select(UserSession).where(UserSession.id == session_id)
             )
             permissions = self._load_permissions(user.id, session=s)
+            permission_groups = self._load_permission_groups(user.id, session=s)
             if session:
                 s.expunge(session)
                 return self.to_dto(
-                    user_model=user, session=session, permissions=permissions
+                    user_model=user,
+                    session=session,
+                    permissions=permissions,
+                    permission_groups=permission_groups,
                 )
 
     def deactivate_session(
