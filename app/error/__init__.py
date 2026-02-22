@@ -1,7 +1,7 @@
 import logging
 
 from .base import AppError
-from .user import UserIsAuthenticated, UserNotAuthenticated
+from .user import PermissionDenied, UserIsAuthenticated, UserNotAuthenticated
 
 
 def error_handler(err):

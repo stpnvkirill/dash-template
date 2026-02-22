@@ -19,3 +19,12 @@ class UserIsAuthenticated(AppError):
 
     def on_error(self):
         set_props("_pages_location", {"pathname": self.next_page, "search": ""})
+
+
+class PermissionDenied(AppError):
+    def __init__(self, next_page="/access-denied", *args):
+        self.next_page = next_page
+        super().__init__(*args)
+
+    def on_error(self):
+        set_props("_pages_location", {"pathname": self.next_page, "search": ""})
