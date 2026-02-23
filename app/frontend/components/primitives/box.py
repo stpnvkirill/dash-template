@@ -1,6 +1,6 @@
 import dash_mantine_components as dmc
 
-from .base import BaseComponent
+from app.frontend.components.base import BaseComponent
 
 
 class Box(BaseComponent):

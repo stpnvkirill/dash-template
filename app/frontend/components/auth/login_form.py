@@ -4,13 +4,11 @@ from flask import g
 from flask_login import login_user
 
 from app.backend import back
-from app.frontend.components.box import Box
-from app.frontend.components.forms.inputs.password import PwdInput
-from app.frontend.components.forms.inputs.user_attr import RememberMe, UserEmailInput
 from app.frontend.components.locale import _l
-from app.frontend.components.store import Store
+from app.frontend.components.primitives import Box, Store
+from app.frontend.components.shared.inputs import PwdInput, RememberMe, UserEmailInput
 
-from .btn import LoginButton
+from .buttons import LoginButton
 
 namespace = "login"
 

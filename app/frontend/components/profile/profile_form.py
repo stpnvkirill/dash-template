@@ -15,17 +15,17 @@ from flask_login import current_user
 
 from app.backend import back
 from app.backend.domain import UserDto
-from app.frontend.components.box import Box
-from app.frontend.components.forms.inputs.password import PwdInput
-from app.frontend.components.forms.inputs.user_attr import (
+from app.frontend.components.locale import _l, _l_dt, _l_dt_relative
+from app.frontend.components.primitives import Box
+from app.frontend.components.shared.inputs import (
+    PwdInput,
     UserEmailInput,
     UserFirstNameInput,
     UserLastNameInput,
     UserSexInput,
 )
-from app.frontend.components.locale import _l, _l_dt, _l_dt_relative
 
-from .btn import ProfileLogoutButton, ProfileSaveButton
+from .buttons import ProfileLogoutButton, ProfileSaveButton
 
 namespace = "profile"
 ProfileRespBox = Box(namespace=namespace, suffix="ProfileResp")

@@ -32,7 +32,6 @@ class PwdInput(BaseComponent):
         )
 
 
-# Клиентский callback для расчета сложности пароля
 clientside_callback(
     ClientsideFunction("auth", "check_pwd"),
     Output(PwdInput.match_component_id(suffix="Rating"), "value"),
