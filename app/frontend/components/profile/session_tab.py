@@ -7,9 +7,9 @@ from flask_login import current_user
 
 from app.backend import back
 from app.backend.domain import SessionDto, UserDto
+from app.frontend.components.locale import _l, _l_dt_relative
 
 from .buttons import TerminateAllOtherSessionBtn, TerminateSessionBtn
-from .locale import _l, _l_dt_relative
 
 namespace = "session-tab"
 

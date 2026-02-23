@@ -2,7 +2,7 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 from flask_login import current_user
 
-from app.frontend.components.forms.inputs.locale import LanguagePicker
+from app.frontend.components.shared import LanguagePicker
 
 
 def ChangeColorIcon():

@@ -3,7 +3,7 @@ import dash_mantine_components as dmc
 from flask_login import current_user
 
 from app.error import UserIsAuthenticated
-from app.frontend.components.forms import LoginForm
+from app.frontend.components.auth import LoginForm
 from app.frontend.components.locale import _l
 
 dash.register_page(__name__, path="/login")

@@ -3,10 +3,37 @@ from uuid import UUID
 
 from dash import MATCH
 from dash_iconify import DashIconify
+import dash_mantine_components as dmc
 
 from app.frontend.components.locale import _l
+from app.frontend.components.primitives import Button
 
-from .base import Button
+
+class ProfileSaveButton(Button):
+    def __call__(self, **kwargs):
+        kwrg = {
+            "children": _l("profileform_save_btn"),
+            "fullWidth": True,
+            "mt": "md",
+        }
+        kwrg.update(kwargs)
+        return super().__call__(**kwrg)
+
+
+class ProfileLogoutButton(Button):
+    def __call__(self, **kwargs):
+        kwrg = {
+            "children": _l("profileform_logout_btn"),
+            "variant": "transparent",
+            "fullWidth": True,
+            "color": "red",
+        }
+        kwrg.update(kwargs)
+        return dmc.Anchor(
+            super().__call__(**kwrg),
+            href="/logout",
+            underline="never",
+        )
 
 
 class TerminateSessionBtn(Button):

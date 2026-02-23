@@ -13,19 +13,18 @@ from flask import g
 from flask_login import login_user
 
 from app.backend import back
-from app.frontend.components.box import Box
-from app.frontend.components.forms.inputs.password import PwdInput
-from app.frontend.components.forms.inputs.user_attr import (
+from app.frontend.components.locale import _l
+from app.frontend.components.primitives import Box, Store
+from app.frontend.components.shared.inputs import (
+    PwdInput,
     RememberMe,
     UserEmailInput,
     UserFirstNameInput,
     UserLastNameInput,
     UserSexInput,
 )
-from app.frontend.components.locale import _l
-from app.frontend.components.store import Store
 
-from .btn import RegButton
+from .buttons import RegButton
 
 namespace = "reg"
 
