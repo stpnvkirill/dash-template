@@ -26,7 +26,11 @@ class AutoContextFormatter(JsonFormatter):
                     }
                 }
             )
-            if current_user.is_authenticated:
+            if (
+                current_user.is_authenticated
+                and hasattr(current_user, "session")
+                and current_user.session
+            ):
                 log_record.update(
                     {
                         "user": {

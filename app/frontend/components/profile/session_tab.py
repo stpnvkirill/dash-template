@@ -15,7 +15,7 @@ namespace = "session-tab"
 
 
 def SessionTab(user: UserDto):
-    sessions = back.user.get_active_session(user.id, exclude_id=user.session.id)
+    sessions = back.user.get_active_sessions(user.id, exclude_id=user.session.id)
     return dmc.Stack([CurrentSessionBlock(user.session), SessionBlock(sessions)])
 
 
@@ -87,7 +87,7 @@ def terminate_session(n):
 )
 def terminate_all_other_session(n):
     if n:
-        sessions = back.user.get_active_session(
+        sessions = back.user.get_active_sessions(
             current_user.id, exclude_id=current_user.session.id
         )
         for s in sessions:

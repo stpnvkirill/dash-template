@@ -9,12 +9,14 @@ from .models import UserTest
 test_email = f"test_{uuid4()}@test.ru"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def backend():
     yield Backend()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def user():
-    """Фикстура для тестового клиента"""
-    return UserTest(email=test_email, pwd="Qwerty123!")
+    """Fixture for test user"""
+
+    unique_email = f"test_{uuid4()}@test.ru"
+    return UserTest(email=unique_email, pwd="Qwerty123!")

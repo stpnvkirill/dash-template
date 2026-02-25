@@ -1,1 +1,1 @@
-from .user import UserService
+from .user.user_service import UserService

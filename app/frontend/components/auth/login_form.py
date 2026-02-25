@@ -48,7 +48,7 @@ def LoginForm(next_page="/"):
 )
 def login(n_clicks, email, password, remember=True, next_page="/"):
     if n_clicks and email and password:
-        user = back.user.auth(
+        user = back.user.authenticate(
             email=email,
             password=password,
             ip=g.ip_address,

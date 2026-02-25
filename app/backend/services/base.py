@@ -83,4 +83,7 @@ class SqlService:
 
 
 class BaseService:
-    pass
+    def session_scope(self):
+        """Get database session context manager"""
+
+        return SessionManager().session()
