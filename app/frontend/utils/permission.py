@@ -7,8 +7,10 @@ from functools import wraps
 from typing import Protocol
 
 import dash_mantine_components as dmc
+from flask import g
 from flask_login import current_user
 
+from app.backend.services.factory import get_service_factory
 from app.error import PermissionDenied
 
 
@@ -49,15 +51,35 @@ def _normalize_permissions(
     return tuple(_normalize_permission(permission) for permission in permissions)
 
 
+def _get_user_permissions() -> frozenset[tuple[str, str]]:
+    """Lazy load user permissions with caching in flask.g.
+
+    Permissions are loaded from database only on first access during request.
+    Subsequent calls use cached value from flask.g.
+
+    Returns:
+        Frozen set of (category, key) permission tuples.
+    """
+    if not getattr(current_user, "is_authenticated", False):
+        return frozenset()
+
+    # Check cache in flask.g (lives for single request)
+    if "permissions" not in g:
+        # Load permissions on-demand from database
+        factory = get_service_factory()
+        g.permissions = factory.permission_service.load_permissions(current_user.id)
+
+    return g.permissions
+
+
 def _user_has_permissions(required: tuple[tuple[str, str], ...]) -> bool:
     if not required:
         return True
     if not getattr(current_user, "is_authenticated", False):
         return False
-    checker = getattr(current_user, "has_permission", None)
-    if not callable(checker):
-        return False
-    return all(checker(category, key) for category, key in required)
+
+    permissions = _get_user_permissions()  # Lazy loading
+    return all((category, key) in permissions for category, key in required)
 
 
 def permission_required(*permissions: PermissionInput):

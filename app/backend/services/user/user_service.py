@@ -167,16 +167,24 @@ class UserService(BaseService):
             browser=browser,
         )
 
-    def get_user_by_session(self, session_id: UUID) -> UserDto | None:
+    def get_user_by_session(
+        self,
+        session_id: UUID,
+        load_permissions: bool = True,
+    ) -> UserDto | None:
         """Get user by session ID.
 
         Args:
             session_id: Session ID.
+            load_permissions: Load user permissions
+                (default: True for backward compatibility).
 
         Returns:
             UserDto if found, None otherwise.
         """
-        return self._session_service.get_user_by_session(session_id)
+        return self._session_service.get_user_by_session(
+            session_id, load_permissions=load_permissions
+        )
 
     def create_session(
         self,

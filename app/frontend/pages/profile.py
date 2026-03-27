@@ -6,6 +6,7 @@ from flask_login import current_user
 from app.error import UserNotAuthenticated
 from app.frontend.components.locale import _l
 from app.frontend.components.profile import PermissionsTab, ProfileForm, SessionTab
+from app.frontend.utils.lazy_user import LazyUserLoader
 
 register_page(
     __name__,
@@ -56,6 +57,6 @@ def render_tab_content(active):
     elif active == "sessions":
         return SessionTab(current_user)
     elif active == "permission":
-        return PermissionsTab(current_user)
+        return PermissionsTab(LazyUserLoader.with_permissions())
 
     return dmc.Box()

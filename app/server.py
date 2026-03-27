@@ -34,7 +34,11 @@ def get_application() -> Flask:
         Returns:
             UserDto if session is valid, None otherwise.
         """
-        user = back.user.get_user_by_session(session_id=session_id)
+        # Lazy loading: permissions are loaded on-demand via flask.g
+        user = back.user.get_user_by_session(
+            session_id=session_id,
+            load_permissions=False,
+        )
         return user
 
     return create_dash(server=server)

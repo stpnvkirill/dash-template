@@ -172,11 +172,17 @@ class SessionService(BaseService):
         )
         return [SessionConverter.to_dto(session) for session in sessions]
 
-    def get_user_by_session(self, session_id: UUID) -> UserDto | None:
+    def get_user_by_session(
+        self,
+        session_id: UUID,
+        load_permissions: bool = True,
+    ) -> UserDto | None:
         """Get user by session ID with activity update.
 
         Args:
             session_id: Session ID.
+            load_permissions: Load user permissions
+                (default: True for backward compatibility).
 
         Returns:
             UserDto with session info, or None if session not found.
@@ -208,7 +214,7 @@ class SessionService(BaseService):
                 sa.select(UserSession).where(UserSession.id == session_id)
             )
 
-            if user:
+            if user and load_permissions:
                 permissions = self._load_permissions(user.id, session)
                 permission_groups = self._load_permission_groups(user.id, session)
 
