@@ -68,11 +68,19 @@ def LocaleStore():
     Output("locale-store", "data"), Input("locale-selector", "value"), hidden=True
 )
 @lru_cache(maxsize=config.server.LRU_CACHE_MAXSIZE)
-def load_translate(locale):
+def load_translate(locale: str) -> dict:
+    """Load translation file for the given locale.
+
+    Args:
+        locale: Locale code (e.g., 'en', 'ru')
+
+    Returns:
+        Dictionary with translations
+    """
     try:
         with Path(f"./i18n/{locale}.json").open() as fp:
             return orjson.loads(fp.read())
-    except:  # noqa: E722
+    except FileNotFoundError, orjson.JSONDecodeError:
         with Path("./i18n/en.json").open() as fp:
             return orjson.loads(fp.read())
 

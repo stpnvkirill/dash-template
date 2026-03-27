@@ -150,7 +150,7 @@ Create repository in `app/backend/repositories/` for data operations:
 ```python
 # app/backend/repositories/your_entity_repository.py
 from app.backend.database.models import YourEntity
-from app.backend.services.base import SqlService
+from app.backend.infrastructure.database import SqlService
 from .base_repository import BaseRepository
 
 class YourEntityRepository(BaseRepository[YourEntity]):
@@ -168,8 +168,9 @@ Create service in `app/backend/services/your_entity/` with business logic:
 # app/backend/services/your_entity/your_entity_service.py
 from app.backend.database.models import YourEntity
 from app.backend.domain import YourEntityDto
+from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.your_entity_repository import YourEntityRepository
-from app.backend.services.base import BaseService, SqlService
+from app.backend.services.base import BaseService
 from app.backend.converters.your_entity_converter import YourEntityConverter
 
 class YourEntityService(BaseService):

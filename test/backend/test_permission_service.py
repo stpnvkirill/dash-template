@@ -1,3 +1,5 @@
+"""Tests for PermissionService."""
+
 import uuid
 
 import pytest
@@ -10,20 +12,22 @@ from app.backend.database.models import (
     user_permission_groups,
     user_permissions,
 )
-from app.backend.services.base import SqlService
+from app.backend.infrastructure.database import SqlService
 from app.backend.services.permission.permission_service import PermissionService
 
 
 class TestPermissionService:
-    """Tests for PermissionService"""
+    """Tests for PermissionService."""
 
     @pytest.fixture
-    def permission_service(self):
-        """Fixture for PermissionService"""
+    def permission_service(self) -> PermissionService:
+        """Fixture for PermissionService."""
         return PermissionService()
 
-    def test_load_permissions_empty(self, permission_service):
-        """Test loading permissions for user without permissions"""
+    def test_load_permissions_empty(
+        self, permission_service: PermissionService
+    ) -> None:
+        """Test loading permissions for user without permissions."""
         # Create user without permissions
         email = f"test_empty_{uuid.uuid4()}@example.com"
         user_repo = SqlService(model=User)
@@ -34,8 +38,10 @@ class TestPermissionService:
         permissions = permission_service.load_permissions(user.id)
         assert permissions == frozenset()
 
-    def test_load_permissions_direct(self, permission_service):
-        """Test loading user's direct permissions"""
+    def test_load_permissions_direct(
+        self, permission_service: PermissionService
+    ) -> None:
+        """Test loading user's direct permissions."""
         # Create user
         email = f"test_direct_{uuid.uuid4()}@example.com"
         user_repo = SqlService(model=User)
@@ -63,8 +69,10 @@ class TestPermissionService:
         perm_tuple = next(iter(permissions))
         assert perm_tuple[1] == "read"
 
-    def test_load_permissions_via_group(self, permission_service):
-        """Test loading permissions through groups"""
+    def test_load_permissions_via_group(
+        self, permission_service: PermissionService
+    ) -> None:
+        """Test loading permissions through groups."""
         # Create user
         email = f"test_group_{uuid.uuid4()}@example.com"
         user_repo = SqlService(model=User)
@@ -103,8 +111,10 @@ class TestPermissionService:
         perm_tuple = next(iter(permissions))
         assert perm_tuple[1] == "write"
 
-    def test_load_permission_groups_empty(self, permission_service):
-        """Test loading permission groups for user without groups"""
+    def test_load_permission_groups_empty(
+        self, permission_service: PermissionService
+    ) -> None:
+        """Test loading permission groups for user without groups."""
         email = f"test_groups_empty_{uuid.uuid4()}@example.com"
         user_repo = SqlService(model=User)
         user = user_repo.insert(
@@ -114,8 +124,10 @@ class TestPermissionService:
         groups = permission_service.load_permission_groups(user.id)
         assert groups == ()
 
-    def test_load_permission_groups(self, permission_service):
-        """Test loading user's permission groups"""
+    def test_load_permission_groups(
+        self, permission_service: PermissionService
+    ) -> None:
+        """Test loading user's permission groups."""
         email = f"test_groups_{uuid.uuid4()}@example.com"
         user_repo = SqlService(model=User)
         user = user_repo.insert(

@@ -1,89 +1,23 @@
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.orm import DeclarativeBase
+"""Base service class for business logic.
+
+This module contains the base class for all services. Services should use
+repositories for data access, not SqlService directly.
+"""
 
 from app.backend.database import SessionManager
 
 
-class SqlService:
-    model: DeclarativeBase
-    primary_key: str
-    _sm: SessionManager = SessionManager()
-
-    def __init__(self, model, primary_key="id"):
-        self.model = model
-        self.primary_key = primary_key
-
-    @property
-    def session(self):
-        return self._sm.session()
-
-    def get(self, id):
-        with self.session as s:
-            stmt = sa.select(self.model).where(
-                getattr(self.model, self.primary_key) == id
-            )
-            return s.scalar(stmt)
-
-    def get_by(self, **kwargs):
-        with self.session as s:
-            stmt = (
-                sa.select(self.model)
-                .where(*[getattr(self.model, k) == v for k, v in kwargs.items()])
-                .limit(1)
-            )
-            return s.scalar(stmt)
-
-    def select(self, *conditions, **kwargs):
-        with self.session as s:
-            stmt = (
-                sa.select(self.model)
-                .where(*conditions)
-                .where(*[getattr(self.model, k) == v for k, v in kwargs.items()])
-            )
-            return list(s.scalars(stmt))
-
-    def upsert(self, id, **data):
-        with self.session as s:
-            data[self.primary_key] = id
-            stmt = (
-                pg_insert(self.model)
-                .values(data)
-                .on_conflict_do_update(index_elements=[self.primary_key], set_=data)
-                .returning(self.model)
-            )
-            return s.scalar(stmt)
-
-    def insert_or_update(self, index_elements: list, only_stmt=False, **data):
-        stmt = (
-            pg_insert(self.model)
-            .values(data)
-            .on_conflict_do_update(index_elements=index_elements, set_=data)
-            .returning(self.model)
-        )
-        if only_stmt:
-            return stmt
-        with self.session as s:
-            return s.scalar(stmt)
-
-    def insert(self, **data):
-        with self.session as s:
-            stmt = pg_insert(self.model).values(data).returning(self.model)
-            return s.scalar(stmt)
-
-    def update(self, id, **data):
-        with self.session as s:
-            stmt = (
-                sa.update(self.model)
-                .where(getattr(self.model, self.primary_key) == id)
-                .values(**data)
-                .returning(self.model)
-            )
-            return s.scalar(stmt)
-
-
 class BaseService:
-    def session_scope(self):
-        """Get database session context manager"""
+    """Base class for all business logic services.
 
+    Provides a session_scope context manager for database operations
+    that need to span multiple repository calls.
+    """
+
+    def session_scope(self) -> SessionManager:
+        """Get database session context manager.
+
+        Returns:
+            SessionManager context manager for database transactions.
+        """
         return SessionManager().session()

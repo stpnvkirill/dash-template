@@ -1,11 +1,11 @@
 from flask import g, request
 from user_agents import parse
 
-from .base import BaseMiddlaware
+from .base import BaseMiddleware
 
 
-class UserAgentMiddleware(BaseMiddlaware):
-    def before(self):
+class UserAgentMiddleware(BaseMiddleware):
+    def before(self) -> None:
         if request.headers.getlist("X-Forwarded-For"):
             ip_address = request.headers.getlist("X-Forwarded-For")[0]
         else:

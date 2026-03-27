@@ -7,7 +7,7 @@ from flask import g, has_request_context, request
 from flask_login import current_user
 from pythonjsonlogger.json import JsonFormatter
 
-from .base import BaseMiddlaware
+from .base import BaseMiddleware
 
 
 class AutoContextFormatter(JsonFormatter):
@@ -77,8 +77,8 @@ root_logger.setLevel(logging.INFO)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 
-class LoggingMiddleware(BaseMiddlaware):
-    def before(self):
+class LoggingMiddleware(BaseMiddleware):
+    def before(self) -> None:
         g.start_time = time.time()
         g.request_id = str(uuid.uuid7())
 
