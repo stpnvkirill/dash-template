@@ -58,6 +58,10 @@ ignore = [
   "S106",   # hardcoded passwords (development)
   "G004",   # logging f-string (acceptable for structured logs)
   "A002",   # builtin argument shadowing (common in SQLAlchemy)
+  "C901",   # function complexity (complex business logic is acceptable)
+  "PLR0913", # too many arguments (DI pattern with explicit dependencies)
+  "BLE001", # blind except Exception (valid for middleware error handling)
+  "PLC0415", # import outside top-level (lazy loading in functions)
 ]
 
 
