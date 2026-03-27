@@ -6,7 +6,7 @@ from app.backend import back
 dash.register_page(__name__, path="/logout")
 
 
-def layout(**kwargs):  # noqa: ARG001
+def layout(**kwargs):
     if current_user.is_authenticated:
         back.user.deactivate_session(session_id=current_user.get_id())
         logout_user()

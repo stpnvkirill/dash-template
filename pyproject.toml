@@ -98,3 +98,6 @@ avoid-escape = true
 
 "alembic/**/*.py" = ["ALL"]
 "**/alembic/*.py" = ["ALL"]
+
+# Dash layout functions receive kwargs from framework
+"app/frontend/pages/**/*.py" = ["ARG001"]

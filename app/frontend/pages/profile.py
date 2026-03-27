@@ -13,7 +13,7 @@ register_page(
 )
 
 
-def layout(**kwargs):  # noqa: ARG001
+def layout(**kwargs):
     if not current_user.is_authenticated:
         raise UserNotAuthenticated()
     return dmc.Container(
