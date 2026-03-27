@@ -44,6 +44,13 @@ class Browser(Base):
 class UserSession(Base):
     __tablename__: ClassVar = "user_sessions"
 
+    __table_args__ = (
+        # Composite index for efficient user session lookups
+        sa.Index("ix__user_sessions__user_id_is_active", "user_id", "is_active"),
+        # Index for activity-based queries and cleanup
+        sa.Index("ix__user_sessions__last_activity", "last_activity"),
+    )
+
     id: so.Mapped[uuid_lib.UUID] = so.mapped_column(
         UUID,
         server_default=sa.func.uuidv7(),
@@ -53,6 +60,7 @@ class UserSession(Base):
     user_id: so.Mapped[uuid_lib.UUID] = so.mapped_column(
         UUID,
         sa.ForeignKey("users.id", ondelete="CASCADE"),
+        # Index for foreign key lookups
     )
 
     last_activity: so.Mapped[dt.datetime] = so.mapped_column(

@@ -4,8 +4,9 @@ This module provides rate limiting functionality to protect against
 brute-force attacks on authentication endpoints.
 """
 
-from collections import defaultdict
 from dataclasses import dataclass, field
+import heapq
+import threading
 import time
 
 
@@ -17,11 +18,15 @@ class RateLimitConfig:
         max_attempts: Maximum number of attempts allowed.
         window_seconds: Time window in seconds.
         block_duration_seconds: How long to block after exceeding limit.
+        max_records: Maximum records to keep in memory.
+        cleanup_threshold: Number of records before triggering cleanup.
     """
 
     max_attempts: int = 5
     window_seconds: int = 300  # 5 minutes
     block_duration_seconds: int = 900  # 15 minutes
+    max_records: int = 10000  # Max records in memory
+    cleanup_threshold: int = 8000  # Cleanup when this many records
 
 
 @dataclass
@@ -29,7 +34,7 @@ class AttemptRecord:
     """Record of authentication attempts.
 
     Attributes:
-        timestamps: List of attempt timestamps.
+        timestamps: Min-heap of attempt timestamps for efficient cleanup.
         blocked_until: Timestamp when block expires (0 if not blocked).
     """
 
@@ -42,6 +47,8 @@ class RateLimiter:
 
     Tracks authentication attempts per identifier (email, IP) and
     enforces rate limits to prevent brute-force attacks.
+
+    Thread-safe implementation with automatic cleanup to prevent memory leaks.
     """
 
     def __init__(self, config: RateLimitConfig | None = None) -> None:
@@ -51,7 +58,9 @@ class RateLimiter:
             config: Rate limit configuration (uses defaults if not provided).
         """
         self.config = config or RateLimitConfig()
-        self._records: defaultdict[str, AttemptRecord] = defaultdict(AttemptRecord)
+        self._records: dict[str, AttemptRecord] = {}
+        self._lock = threading.RLock()
+        self._cleanup_counter = 0
 
     def _clean_old_attempts(self, record: AttemptRecord, now: float) -> None:
         """Remove attempts outside the current time window.
@@ -61,7 +70,24 @@ class RateLimiter:
             now: Current timestamp.
         """
         cutoff = now - self.config.window_seconds
-        record.timestamps = [ts for ts in record.timestamps if ts > cutoff]
+        # Use heap for efficient removal of old timestamps
+        while record.timestamps and record.timestamps[0] < cutoff:
+            heapq.heappop(record.timestamps)
+
+    def _maybe_cleanup(self) -> None:
+        """Trigger cleanup if record count exceeds threshold.
+
+        This method is called after each record modification to prevent
+        unbounded memory growth.
+        """
+        self._cleanup_counter += 1
+        # Only cleanup every 100th attempt when over threshold
+        if (
+            len(self._records) >= self.config.cleanup_threshold
+            and self._cleanup_counter % 100 == 0
+        ):
+            self.cleanup_old_records()
+            self._cleanup_counter = 0
 
     def is_blocked(self, identifier: str) -> bool:
         """Check if identifier is currently blocked.
@@ -72,18 +98,22 @@ class RateLimiter:
         Returns:
             True if blocked, False otherwise.
         """
-        record = self._records[identifier]
-        now = time.time()
+        with self._lock:
+            record = self._records.get(identifier)
+            if record is None:
+                return False
 
-        if record.blocked_until > now:
-            return True
+            now = time.time()
 
-        # Block expired, reset
-        if record.blocked_until > 0 and record.blocked_until <= now:
-            record.blocked_until = 0.0
-            record.timestamps.clear()
+            if record.blocked_until > now:
+                return True
 
-        return False
+            # Block expired, reset
+            if record.blocked_until > 0 and record.blocked_until <= now:
+                record.blocked_until = 0.0
+                record.timestamps.clear()
+
+            return False
 
     def record_attempt(self, identifier: str) -> None:
         """Record an authentication attempt.
@@ -91,18 +121,25 @@ class RateLimiter:
         Args:
             identifier: Unique identifier (email or IP).
         """
-        record = self._records[identifier]
-        now = time.time()
+        with self._lock:
+            if identifier not in self._records:
+                self._records[identifier] = AttemptRecord()
 
-        # Clean old attempts
-        self._clean_old_attempts(record, now)
+            record = self._records[identifier]
+            now = time.time()
 
-        # Record new attempt
-        record.timestamps.append(now)
+            # Clean old attempts
+            self._clean_old_attempts(record, now)
 
-        # Check if limit exceeded
-        if len(record.timestamps) > self.config.max_attempts:
-            record.blocked_until = now + self.config.block_duration_seconds
+            # Record new attempt (use heap for efficient ordering)
+            heapq.heappush(record.timestamps, now)
+
+            # Check if limit exceeded
+            if len(record.timestamps) > self.config.max_attempts:
+                record.blocked_until = now + self.config.block_duration_seconds
+
+            # Check if cleanup is needed
+            self._maybe_cleanup()
 
     def get_remaining_attempts(self, identifier: str) -> int:
         """Get remaining attempts for identifier.
@@ -113,14 +150,18 @@ class RateLimiter:
         Returns:
             Number of remaining attempts, 0 if blocked.
         """
-        if self.is_blocked(identifier):
-            return 0
+        with self._lock:
+            if self.is_blocked(identifier):
+                return 0
 
-        record = self._records[identifier]
-        now = time.time()
-        self._clean_old_attempts(record, now)
+            record = self._records.get(identifier)
+            if record is None:
+                return self.config.max_attempts
 
-        return max(0, self.config.max_attempts - len(record.timestamps))
+            now = time.time()
+            self._clean_old_attempts(record, now)
+
+            return max(0, self.config.max_attempts - len(record.timestamps))
 
     def get_retry_after(self, identifier: str) -> int | None:
         """Get seconds until retry is allowed.
@@ -131,13 +172,17 @@ class RateLimiter:
         Returns:
             Seconds to wait, None if not blocked.
         """
-        record = self._records[identifier]
-        now = time.time()
+        with self._lock:
+            record = self._records.get(identifier)
+            if record is None:
+                return None
 
-        if record.blocked_until > now:
-            return int(record.blocked_until - now)
+            now = time.time()
 
-        return None
+            if record.blocked_until > now:
+                return int(record.blocked_until - now)
+
+            return None
 
     def reset(self, identifier: str) -> None:
         """Reset rate limit for identifier (e.g., after successful login).
@@ -145,10 +190,11 @@ class RateLimiter:
         Args:
             identifier: Unique identifier (email or IP).
         """
-        if identifier in self._records:
-            record = self._records[identifier]
-            record.timestamps.clear()
-            record.blocked_until = 0.0
+        with self._lock:
+            if identifier in self._records:
+                record = self._records[identifier]
+                record.timestamps.clear()
+                record.blocked_until = 0.0
 
     def cleanup_old_records(self) -> int:
         """Remove stale records from memory.
@@ -159,29 +205,57 @@ class RateLimiter:
         Returns:
             Number of records removed.
         """
-        now = time.time()
-        cutoff = now - self.config.window_seconds
-        removed = 0
+        with self._lock:
+            now = time.time()
+            now - self.config.window_seconds
+            removed = 0
 
-        keys_to_remove = []
-        for identifier, record in self._records.items():
-            # Keep if blocked or has recent attempts
-            if record.blocked_until > now:
-                continue
-            if any(ts > cutoff for ts in record.timestamps):
-                continue
-            # Safe to remove
-            keys_to_remove.append(identifier)
+            keys_to_remove = []
+            for identifier, record in self._records.items():
+                # Keep if blocked or has recent attempts
+                if record.blocked_until > now:
+                    continue
+                # Clean old timestamps first
+                self._clean_old_attempts(record, now)
+                if record.timestamps:
+                    continue
+                # Safe to remove
+                keys_to_remove.append(identifier)
 
-        for key in keys_to_remove:
-            del self._records[key]
-            removed += 1
+            for key in keys_to_remove:
+                del self._records[key]
+                removed += 1
 
-        return removed
+            return removed
+
+    def get_stats(self) -> dict:
+        """Get rate limiter statistics.
+
+        Returns:
+            Dictionary with statistics about the rate limiter state.
+        """
+        with self._lock:
+            now = time.time()
+            blocked_count = 0
+            active_count = 0
+
+            for record in self._records.values():
+                if record.blocked_until > now:
+                    blocked_count += 1
+                elif record.timestamps:
+                    active_count += 1
+
+            return {
+                "total_records": len(self._records),
+                "blocked": blocked_count,
+                "active": active_count,
+                "max_records": self.config.max_records,
+            }
 
 
 # Global rate limiter instance for authentication
 _auth_rate_limiter: RateLimiter | None = None
+_lock = threading.Lock()
 
 
 def get_auth_rate_limiter() -> RateLimiter:
@@ -192,7 +266,9 @@ def get_auth_rate_limiter() -> RateLimiter:
     """
     global _auth_rate_limiter
     if _auth_rate_limiter is None:
-        _auth_rate_limiter = RateLimiter()
+        with _lock:
+            if _auth_rate_limiter is None:
+                _auth_rate_limiter = RateLimiter()
     return _auth_rate_limiter
 
 

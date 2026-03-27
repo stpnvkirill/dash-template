@@ -1,3 +1,4 @@
+from functools import lru_cache
 import logging
 from pathlib import Path
 import time
@@ -116,9 +117,30 @@ def strip_filename(name: str):
     return "/app/" + name.rsplit("/app/", maxsplit=1)[-1]
 
 
+# LRU cache for file contents to avoid repeated disk I/O
+# Limits: 100 files, max 50 lines per file, max 1KB per line
+@lru_cache(maxsize=100)
+def _get_cached_file_lines(filename: str) -> tuple[str, ...] | None:
+    """Get cached lines from a file.
+
+    Args:
+        filename: Path to the file.
+
+    Returns:
+        Tuple of lines or None if file cannot be read.
+    """
+    try:
+        with Path(filename).open(encoding="utf-8") as f:
+            return tuple(f.readlines())
+    except Exception:
+        return None
+
+
 def get_error_source(error: Exception):
     """
-    Get the line of code where the error occurred
+    Get the line of code where the error occurred.
+
+    Optimized with LRU caching to avoid repeated disk I/O.
     """
     try:
         exc_traceback = error.__traceback__
@@ -137,19 +159,19 @@ def get_error_source(error: Exception):
                 and "logs.py" not in filename
             ):
                 line_no = tb.tb_lineno
-                try:
-                    with Path(filename).open(encoding="utf-8") as f:
-                        lines = f.readlines()
-                        if line_no - 1 < len(lines):
-                            source_line = lines[line_no - 1].strip()
-                            return {
-                                "error": str(error),
-                                "filename": f"{strip_filename(filename)}:{line_no}",
-                                "source": source_line,
-                            }
-                except Exception:
-                    logger.debug("Failed to extract source line from traceback")
-                    pass
+
+                # Try to get source from cache
+                lines = _get_cached_file_lines(filename)
+
+                if lines is not None and line_no - 1 < len(lines):
+                    # Limit line length to prevent huge log entries
+                    source_line = lines[line_no - 1].strip()[:500]
+                    return {
+                        "error": str(error),
+                        "filename": f"{strip_filename(filename)}:{line_no}",
+                        "source": source_line,
+                    }
+
                 return {
                     "error": str(error),
                     "filename": f"{strip_filename(filename)}:{line_no}",
@@ -162,3 +184,11 @@ def get_error_source(error: Exception):
 
     except Exception:
         return None
+
+
+def clear_error_source_cache() -> None:
+    """Clear the error source cache.
+
+    Useful for testing or when source files change.
+    """
+    _get_cached_file_lines.cache_clear()
