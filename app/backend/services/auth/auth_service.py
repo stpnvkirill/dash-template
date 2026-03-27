@@ -10,6 +10,7 @@ from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.user_repository import UserRepository
 from app.backend.services.base import BaseService
 from app.backend.services.rate_limiter import get_auth_rate_limiter
+from app.backend.services.session.session_service import SessionService
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +22,22 @@ class AuthService(BaseService):
     Includes rate limiting to protect against brute-force attacks.
     """
 
-    def __init__(self, user_repo: UserRepository | None = None):
+    def __init__(
+        self,
+        user_repo: UserRepository | None = None,
+        session_service: SessionService | None = None,
+    ):
         """Initialize AuthService.
 
         Args:
             user_repo: UserRepository instance (optional, created if not provided).
+            session_service: SessionService instance for session creation.
         """
         super().__init__()
         self.user_repo: UserRepository = user_repo or UserRepository(
             SqlService(model=User)
         )
+        self._session_service = session_service
         self._rate_limiter = get_auth_rate_limiter()
 
     def authenticate(
@@ -82,13 +89,7 @@ class AuthService(BaseService):
             for identifier in identifiers:
                 self._rate_limiter.reset(identifier)
 
-            # Import here to avoid circular dependency
-            from app.backend.services.session.session_service import (  # noqa: PLC0415
-                SessionService,
-            )
-
-            session_service = SessionService()
-            return session_service.create_session(
+            return self._session_service.create_session(
                 user=user,
                 ip=ip,
                 os=os,

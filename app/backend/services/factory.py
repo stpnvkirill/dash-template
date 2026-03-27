@@ -17,51 +17,16 @@ from app.backend.services.user.user_service import UserService
 class ServiceFactory:
     """Factory for creating service instances with dependencies.
 
-    This factory uses lazy initialization to avoid circular dependencies.
+    This factory creates services with proper dependency injection.
+    All services share the same database session manager.
     """
 
     def __init__(self) -> None:
         """Initialize service factory."""
-        self._user_service: UserService | None = None
-        self._auth_service: AuthService | None = None
-        self._session_service: SessionService | None = None
         self._permission_service: PermissionService | None = None
-
-    @property
-    def user_service(self) -> UserService:
-        """Get UserService instance.
-
-        Returns:
-            UserService instance.
-        """
-        if self._user_service is None:
-            user_repo = UserRepository(SqlService(model=User))
-            self._user_service = UserService(user_repo)
-        return self._user_service
-
-    @property
-    def auth_service(self) -> AuthService:
-        """Get AuthService instance.
-
-        Returns:
-            AuthService instance.
-        """
-        if self._auth_service is None:
-            user_repo = UserRepository(SqlService(model=User))
-            self._auth_service = AuthService(user_repo)
-        return self._auth_service
-
-    @property
-    def session_service(self) -> SessionService:
-        """Get SessionService instance.
-
-        Returns:
-            SessionService instance.
-        """
-        if self._session_service is None:
-            session_repo = SessionRepository(SqlService(model=UserSession))
-            self._session_service = SessionService(session_repo)
-        return self._session_service
+        self._session_service: SessionService | None = None
+        self._auth_service: AuthService | None = None
+        self._user_service: UserService | None = None
 
     @property
     def permission_service(self) -> PermissionService:
@@ -73,6 +38,52 @@ class ServiceFactory:
         if self._permission_service is None:
             self._permission_service = PermissionService()
         return self._permission_service
+
+    @property
+    def session_service(self) -> SessionService:
+        """Get SessionService instance.
+
+        Returns:
+            SessionService instance with injected dependencies.
+        """
+        if self._session_service is None:
+            session_repo = SessionRepository(SqlService(model=UserSession))
+            self._session_service = SessionService(
+                session_repo=session_repo,
+                permission_service=self.permission_service,
+            )
+        return self._session_service
+
+    @property
+    def auth_service(self) -> AuthService:
+        """Get AuthService instance.
+
+        Returns:
+            AuthService instance with injected dependencies.
+        """
+        if self._auth_service is None:
+            user_repo = UserRepository(SqlService(model=User))
+            self._auth_service = AuthService(
+                user_repo=user_repo,
+                session_service=self.session_service,
+            )
+        return self._auth_service
+
+    @property
+    def user_service(self) -> UserService:
+        """Get UserService instance.
+
+        Returns:
+            UserService instance with injected dependencies.
+        """
+        if self._user_service is None:
+            user_repo = UserRepository(SqlService(model=User))
+            self._user_service = UserService(
+                user_repo=user_repo,
+                auth_service=self.auth_service,
+                session_service=self.session_service,
+            )
+        return self._user_service
 
 
 # Global service factory instance

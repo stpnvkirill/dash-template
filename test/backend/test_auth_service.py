@@ -1,16 +1,8 @@
-import pytest
-
-from app.backend.services.auth.auth_service import AuthService
 from test.conftest import UserTest
 
 
 class TestAuthService:
     """Tests for AuthService"""
-
-    @pytest.fixture
-    def auth_service(self):
-        """Fixture for AuthService"""
-        return AuthService()
 
     def test_authenticate_success(self, auth_service, user: UserTest):
         """Test successful authentication"""

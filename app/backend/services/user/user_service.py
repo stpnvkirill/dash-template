@@ -10,7 +10,9 @@ from app.backend.domain import UserDto
 from app.backend.domain.validators import PasswordValidator
 from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.user_repository import UserRepository
+from app.backend.services.auth.auth_service import AuthService
 from app.backend.services.base import BaseService
+from app.backend.services.session.session_service import SessionService
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +23,25 @@ class UserService(BaseService):
     Provides methods for user CRUD operations, authentication, and session management.
     """
 
-    def __init__(self, user_repo: UserRepository | None = None):
+    def __init__(
+        self,
+        user_repo: UserRepository | None = None,
+        auth_service: AuthService | None = None,
+        session_service: SessionService | None = None,
+    ):
         """Initialize UserService.
 
         Args:
             user_repo: UserRepository instance (optional, created if not provided).
+            auth_service: AuthService instance for authentication.
+            session_service: SessionService instance for session management.
         """
         super().__init__()
         self.user_repo: UserRepository = user_repo or UserRepository(
             SqlService(model=User)
         )
+        self._auth_service = auth_service
+        self._session_service = session_service
 
     def create_user(
         self,
@@ -148,12 +159,7 @@ class UserService(BaseService):
         Returns:
             UserDto with session info if successful, None otherwise.
         """
-        from app.backend.services.factory import (  # noqa: PLC0415
-            get_service_factory,
-        )
-
-        factory = get_service_factory()
-        return factory.auth_service.authenticate(
+        return self._auth_service.authenticate(
             email=email,
             password=password,
             ip=ip,
@@ -170,12 +176,7 @@ class UserService(BaseService):
         Returns:
             UserDto if found, None otherwise.
         """
-        from app.backend.services.factory import (  # noqa: PLC0415
-            get_service_factory,
-        )
-
-        factory = get_service_factory()
-        return factory.session_service.get_user_by_session(session_id)
+        return self._session_service.get_user_by_session(session_id)
 
     def create_session(
         self,
@@ -195,12 +196,7 @@ class UserService(BaseService):
         Returns:
             UserDto with session info.
         """
-        from app.backend.services.factory import (  # noqa: PLC0415
-            get_service_factory,
-        )
-
-        factory = get_service_factory()
-        return factory.session_service.create_session(
+        return self._session_service.create_session(
             user=user,
             ip=ip,
             os=os,
@@ -216,12 +212,7 @@ class UserService(BaseService):
         Returns:
             True if session was deactivated, False if not found.
         """
-        from app.backend.services.factory import (  # noqa: PLC0415
-            get_service_factory,
-        )
-
-        factory = get_service_factory()
-        return factory.session_service.deactivate_session(session_id)
+        return self._session_service.deactivate_session(session_id)
 
     def get_active_sessions(
         self, user_id: UUID, exclude_id: UUID | None = None
@@ -235,9 +226,4 @@ class UserService(BaseService):
         Returns:
             List of SessionDto objects.
         """
-        from app.backend.services.factory import (  # noqa: PLC0415
-            get_service_factory,
-        )
-
-        factory = get_service_factory()
-        return factory.session_service.get_active_sessions(user_id, exclude_id)
+        return self._session_service.get_active_sessions(user_id, exclude_id)

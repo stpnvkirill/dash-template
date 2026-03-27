@@ -7,10 +7,12 @@ import sqlalchemy as sa
 from app.backend.converters.session_converter import SessionConverter
 from app.backend.converters.user_converter import UserConverter
 from app.backend.database.models import User, UserSession
-from app.backend.domain import SessionDto, UserDto
+from app.backend.domain import PermissionGroupDto, SessionDto, UserDto
 from app.backend.infrastructure.database import SqlService
+from app.backend.queries.permission_queries import PermissionQueries
 from app.backend.repositories.session_repository import SessionRepository
 from app.backend.services.base import BaseService
+from app.backend.services.permission.permission_service import PermissionService
 
 
 class SessionService(BaseService):
@@ -19,17 +21,23 @@ class SessionService(BaseService):
     Handles session creation, validation, and lifecycle management.
     """
 
-    def __init__(self, session_repo: SessionRepository | None = None):
+    def __init__(
+        self,
+        session_repo: SessionRepository | None = None,
+        permission_service: PermissionService | None = None,
+    ):
         """Initialize SessionService.
 
         Args:
             session_repo: SessionRepository (optional, created if not provided).
+            permission_service: PermissionService for loading user permissions.
         """
         super().__init__()
         if session_repo:
             self.session_repo: SessionRepository = session_repo
         else:
             self.session_repo = SessionRepository(SqlService(model=UserSession))
+        self._permission_service = permission_service or PermissionService()
 
     def create_session(
         self,
@@ -93,16 +101,13 @@ class SessionService(BaseService):
         Returns:
             Frozen set of (category, key) permission tuples.
         """
-        # Import here to avoid circular dependency
-        from app.backend.queries.permission_queries import (  # noqa: PLC0415
-            PermissionQueries,
-        )
-
         query = PermissionQueries.get_user_permissions_query(user_id)
         rows = session.execute(query).all()
         return frozenset((row.category, row.key) for row in rows)
 
-    def _load_permission_groups(self, user_id: UUID, session: sa.orm.Session) -> tuple:
+    def _load_permission_groups(
+        self, user_id: UUID, session: sa.orm.Session
+    ) -> tuple[PermissionGroupDto, ...]:
         """Load user permission groups.
 
         Args:
@@ -112,12 +117,6 @@ class SessionService(BaseService):
         Returns:
             Tuple of PermissionGroupDto objects.
         """
-        # Import here to avoid circular dependency
-        from app.backend.domain import PermissionGroupDto  # noqa: PLC0415
-        from app.backend.queries.permission_queries import (  # noqa: PLC0415
-            PermissionQueries,
-        )
-
         query = PermissionQueries.get_user_permission_groups_query(user_id)
         rows = session.execute(query).all()
         return tuple(

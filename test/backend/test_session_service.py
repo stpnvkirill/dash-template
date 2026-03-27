@@ -1,25 +1,15 @@
 """Tests for SessionService."""
 
-import pytest
-
 from app.backend.database.models import User
 from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.user_repository import UserRepository
-from app.backend.services.session.session_service import SessionService
 from test.conftest import UserTest
 
 
 class TestSessionService:
     """Tests for SessionService."""
 
-    @pytest.fixture
-    def session_service(self) -> SessionService:
-        """Fixture for SessionService."""
-        return SessionService()
-
-    def test_create_session(
-        self, session_service: SessionService, user: UserTest
-    ) -> None:
+    def test_create_session(self, session_service, user: UserTest) -> None:
         """Test session creation."""
         # Create user through repository
         user_repo = UserRepository(SqlService(model=User))
@@ -43,9 +33,7 @@ class TestSessionService:
         assert user_dto.session.browser == "chrome"
         assert str(user_dto.session.ip) == "127.0.0.1"
 
-    def test_deactivate_session(
-        self, session_service: SessionService, user: UserTest
-    ) -> None:
+    def test_deactivate_session(self, session_service, user: UserTest) -> None:
         """Test session deactivation."""
         # Create user and session
         user_repo = UserRepository(SqlService(model=User))
@@ -71,9 +59,7 @@ class TestSessionService:
         user_from_session = session_service.get_user_by_session(session_id)
         assert user_from_session is None
 
-    def test_get_user_by_session(
-        self, session_service: SessionService, user: UserTest
-    ) -> None:
+    def test_get_user_by_session(self, session_service, user: UserTest) -> None:
         """Test getting user by session."""
         # Create user and session
         user_repo = UserRepository(SqlService(model=User))
@@ -98,9 +84,7 @@ class TestSessionService:
         assert retrieved_user.id == user_dto.id
         assert retrieved_user.session.id == session_id
 
-    def test_get_active_sessions(
-        self, session_service: SessionService, user: UserTest
-    ) -> None:
+    def test_get_active_sessions(self, session_service, user: UserTest) -> None:
         """Test getting user's active sessions."""
         # Create user
         user_repo = UserRepository(SqlService(model=User))
