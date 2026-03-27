@@ -18,6 +18,36 @@ import orjson
 
 from config import config
 
+# Allowed locales for security (prevent path traversal)
+ALLOWED_LOCALES = frozenset({"en", "ru"})
+I18N_DIR = Path(__file__).parent.parent.parent.parent / "i18n"
+
+
+def _get_locale_path(locale: str) -> Path:
+    """Get safe path to locale file, preventing path traversal.
+
+    Args:
+        locale: Locale code (e.g., 'en', 'ru')
+
+    Returns:
+        Resolved path to locale JSON file.
+    """
+    # Sanitize locale: allow only alphanumeric and underscore
+    safe_locale = "".join(c for c in locale if c.isalnum() or c == "_")
+
+    # Check if locale is in allowed list
+    if safe_locale not in ALLOWED_LOCALES:
+        safe_locale = "en"
+
+    # Build and resolve path
+    locale_path = (I18N_DIR / f"{safe_locale}.json").resolve()
+
+    # Ensure path is within i18n directory (defense in depth)
+    if not str(locale_path).startswith(str(I18N_DIR.resolve())):
+        locale_path = (I18N_DIR / "en.json").resolve()
+
+    return locale_path
+
 
 def _l(text_id):
     return html.Div(
@@ -78,10 +108,12 @@ def load_translate(locale: str) -> dict:
         Dictionary with translations
     """
     try:
-        with Path(f"./i18n/{locale}.json").open() as fp:
+        locale_path = _get_locale_path(locale)
+        with locale_path.open() as fp:
             return orjson.loads(fp.read())
     except FileNotFoundError, orjson.JSONDecodeError:
-        with Path("./i18n/en.json").open() as fp:
+        # Fallback to English
+        with (I18N_DIR / "en.json").open() as fp:
             return orjson.loads(fp.read())
 
 

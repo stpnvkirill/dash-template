@@ -12,11 +12,18 @@ from app.backend.database.models import (
 
 
 class PermissionQueries:
-    """Query builders for working with permissions"""
+    """Query builders for working with permissions."""
 
     @staticmethod
     def get_user_direct_permissions_query(user_id: UUID) -> sa.Select:
-        """Query to get user's direct permissions"""
+        """Query to get user's direct permissions.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            SQLAlchemy select query for direct permissions.
+        """
         return (
             sa.select(Permission.category, Permission.key)
             .select_from(
@@ -30,7 +37,14 @@ class PermissionQueries:
 
     @staticmethod
     def get_user_group_permissions_query(user_id: UUID) -> sa.Select:
-        """Query to get permissions through groups"""
+        """Query to get permissions through groups.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            SQLAlchemy select query for group-based permissions.
+        """
         return (
             sa.select(Permission.category, Permission.key)
             .select_from(
@@ -48,22 +62,35 @@ class PermissionQueries:
 
     @staticmethod
     def get_user_permissions_query(user_id: UUID) -> sa.Select:
-        """Combined query to get all user permissions"""
+        """Combined query to get all user permissions.
+
+        Uses UNION (not UNION ALL) to automatically remove duplicates
+        in a single database pass.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            SQLAlchemy select query for all user permissions.
+        """
         direct_query = PermissionQueries.get_user_direct_permissions_query(user_id)
         group_query = PermissionQueries.get_user_group_permissions_query(user_id)
 
-        combined = sa.union_all(direct_query, group_query).alias(
-            "user_permissions_union"
-        )
+        # UNION removes duplicates (more efficient than UNION ALL + DISTINCT)
+        combined = sa.union(direct_query, group_query).alias("user_permissions_union")
 
-        return sa.select(
-            combined.c.category,
-            combined.c.key,
-        ).distinct()
+        return sa.select(combined.c.category, combined.c.key)
 
     @staticmethod
     def get_user_permission_groups_query(user_id: UUID) -> sa.Select:
-        """Query to get user's permission groups"""
+        """Query to get user's permission groups.
+
+        Args:
+            user_id: User ID.
+
+        Returns:
+            SQLAlchemy select query for user's permission groups.
+        """
         return (
             sa.select(PermissionGroup.name, PermissionGroup.system_key)
             .select_from(

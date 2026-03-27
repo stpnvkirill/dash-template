@@ -10,7 +10,7 @@ from .base_converter import BaseConverter
 
 
 class UserConverter(BaseConverter):
-    """Converter for users"""
+    """Converter for users."""
 
     @staticmethod
     def to_dto(
@@ -19,7 +19,17 @@ class UserConverter(BaseConverter):
         permissions: frozenset[tuple[str, str]] | None = None,
         permission_groups: tuple | None = None,
     ) -> UserDto | None:
-        """Convert user to DTO"""
+        """Convert user to DTO.
+
+        Args:
+            user: User model or UserDto to convert.
+            session: Optional session DTO.
+            permissions: Optional permissions set.
+            permission_groups: Optional permission groups tuple.
+
+        Returns:
+            UserDto if user is valid, None otherwise.
+        """
         if not user:
             return None
 
@@ -41,14 +51,8 @@ class UserConverter(BaseConverter):
             else ()
         )
 
-        # Determine sex
-        sex_value = (
-            user.sex
-            if isinstance(user.sex, str)
-            else user.sex.value
-            if hasattr(user.sex, "value")
-            else user.sex
-        )
+        # Determine sex value (handle both string and enum)
+        sex_value = getattr(user.sex, "value", str(user.sex))
 
         return UserDto(
             id=user.id,
@@ -56,7 +60,7 @@ class UserConverter(BaseConverter):
             first_name=user.first_name,
             last_name=user.last_name,
             sex=sex_value,
-            session=session,  # Use passed session
+            session=session,
             permissions=resolved_permissions,
             permission_groups=resolved_groups,
         )

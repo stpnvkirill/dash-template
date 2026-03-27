@@ -37,14 +37,6 @@ class BaseRepository[T]:
         """
         return self.sql_service.get(id=id)
 
-    def get_all(self) -> list[T]:
-        """Get all objects.
-
-        Returns:
-            List of all object instances.
-        """
-        return self.sql_service.select()
-
     def create(self, **kwargs: object) -> T:
         """Create new object.
 

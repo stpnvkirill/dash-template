@@ -1,14 +1,18 @@
 """User service for managing user accounts and profiles."""
 
+import logging
 from typing import Literal
 from uuid import UUID
 
 from app.backend.converters.user_converter import UserConverter
 from app.backend.database.models import User
 from app.backend.domain import UserDto
+from app.backend.domain.validators import PasswordValidator
 from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.user_repository import UserRepository
 from app.backend.services.base import BaseService
+
+logger = logging.getLogger(__name__)
 
 
 class UserService(BaseService):
@@ -48,7 +52,17 @@ class UserService(BaseService):
         Returns:
             UserDto if created successfully, None otherwise.
         """
+        # Validate password strength
+        password_result = PasswordValidator.validate(password)
+        if not password_result.is_valid:
+            logger.warning(
+                f"Password validation failed for user {email}: "
+                f"{password_result.error_message}"
+            )
+            return None
+
         try:
+            logger.info(f"Creating user: {email}")
             user = self.user_repo.create_user(
                 email=email,
                 password=password,
@@ -56,8 +70,10 @@ class UserService(BaseService):
                 last_name=last_name,
                 sex=sex,
             )
+            logger.info(f"User created successfully: {user.id}")
             return UserConverter.to_dto(user)
-        except ValueError:
+        except ValueError as e:
+            logger.warning(f"Failed to create user {email}: {e}")
             return None
 
     def get_user(self, user_id: UUID) -> UserDto | None:
