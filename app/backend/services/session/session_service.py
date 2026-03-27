@@ -3,11 +3,10 @@
 from uuid import UUID
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.backend.converters.session_converter import SessionConverter
 from app.backend.converters.user_converter import UserConverter
-from app.backend.database.models import OS, Browser, User, UserSession
+from app.backend.database.models import User, UserSession
 from app.backend.domain import SessionDto, UserDto
 from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.session_repository import SessionRepository
@@ -27,9 +26,10 @@ class SessionService(BaseService):
             session_repo: SessionRepository (optional, created if not provided).
         """
         super().__init__()
-        self.session_repo: SessionRepository = session_repo or SessionRepository(
-            SqlService(model=UserSession)
-        )
+        if session_repo:
+            self.session_repo: SessionRepository = session_repo
+        else:
+            self.session_repo = SessionRepository(SqlService(model=UserSession))
 
     def create_session(
         self,
@@ -50,9 +50,10 @@ class SessionService(BaseService):
             UserDto with updated session information.
         """
         with self.session_scope() as session:
-            os_id = self._ensure_os_exists(session, os)
-            browser_id = self._ensure_browser_exists(session, browser)
-            session_id = self._create_session_record(
+            # Use repository methods for OS/browser lookup
+            os_id = self.session_repo.ensure_os_exists(session, os)
+            browser_id = self.session_repo.ensure_browser_exists(session, browser)
+            session_id = self.session_repo.create_session_record(
                 session, user.id, ip, os_id, browser_id
             )
 
@@ -79,83 +80,6 @@ class SessionService(BaseService):
                 permissions=permissions,
                 permission_groups=permission_groups,
             )
-
-    def _ensure_os_exists(self, session: sa.orm.Session, os_name: str | None) -> UUID:
-        """Ensure OS exists, create if needed.
-
-        Args:
-            session: SQLAlchemy session.
-            os_name: Operating system name.
-
-        Returns:
-            OS record UUID.
-        """
-        os_name = sa.func.lower(os_name or "unknown")
-
-        os_cte = (
-            pg_insert(OS)
-            .values(name=os_name)
-            .on_conflict_do_update(index_elements=["name"], set_={"name": os_name})
-            .returning(OS.id)
-            .cte("os_cte")
-        )
-
-        return session.scalar(sa.select(os_cte.c.id))
-
-    def _ensure_browser_exists(
-        self, session: sa.orm.Session, browser_name: str | None
-    ) -> UUID:
-        """Ensure browser exists, create if needed.
-
-        Args:
-            session: SQLAlchemy session.
-            browser_name: Browser name.
-
-        Returns:
-            Browser record UUID.
-        """
-        browser_name = sa.func.lower(browser_name or "unknown")
-
-        browser_cte = (
-            pg_insert(Browser)
-            .values(name=browser_name)
-            .on_conflict_do_update(index_elements=["name"], set_={"name": browser_name})
-            .returning(Browser.id)
-            .cte("browser_cte")
-        )
-
-        return session.scalar(sa.select(browser_cte.c.id))
-
-    def _create_session_record(
-        self,
-        session: sa.orm.Session,
-        user_id: UUID,
-        ip: str | None,
-        os_id: UUID,
-        browser_id: UUID,
-    ) -> UUID:
-        """Create session record in database.
-
-        Args:
-            session: SQLAlchemy session.
-            user_id: User ID.
-            ip: Client IP address.
-            os_id: OS record ID.
-            browser_id: Browser record ID.
-
-        Returns:
-            Created session UUID.
-        """
-        return session.scalar(
-            pg_insert(UserSession)
-            .values(
-                user_id=user_id,
-                ip_address=ip,
-                os_id=os_id,
-                browser_id=browser_id,
-            )
-            .returning(UserSession.id)
-        )
 
     def _load_permissions(
         self, user_id: UUID, session: sa.orm.Session

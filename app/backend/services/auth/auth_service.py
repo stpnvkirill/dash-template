@@ -1,5 +1,7 @@
 """Authentication service for user login and registration."""
 
+import logging
+
 from werkzeug.security import check_password_hash
 
 from app.backend.database.models import User
@@ -7,12 +9,16 @@ from app.backend.domain import UserDto
 from app.backend.infrastructure.database import SqlService
 from app.backend.repositories.user_repository import UserRepository
 from app.backend.services.base import BaseService
+from app.backend.services.rate_limiter import get_auth_rate_limiter
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService(BaseService):
     """Service for user authentication.
 
     Handles user login, password verification, and email availability checks.
+    Includes rate limiting to protect against brute-force attacks.
     """
 
     def __init__(self, user_repo: UserRepository | None = None):
@@ -25,6 +31,7 @@ class AuthService(BaseService):
         self.user_repo: UserRepository = user_repo or UserRepository(
             SqlService(model=User)
         )
+        self._rate_limiter = get_auth_rate_limiter()
 
     def authenticate(
         self,
@@ -45,10 +52,36 @@ class AuthService(BaseService):
 
         Returns:
             UserDto with session info if authentication successful, None otherwise.
+
+        Raises:
+            RateLimitExceeded: If too many failed attempts.
         """
+        # Check rate limit using email and IP
+        identifiers = [email.lower()]
+        if ip:
+            identifiers.append(f"ip:{ip}")
+
+        # Check if any identifier is blocked
+        for identifier in identifiers:
+            if self._rate_limiter.is_blocked(identifier):
+                retry_after = self._rate_limiter.get_retry_after(identifier)
+                logger.warning(
+                    f"Authentication rate limited for {identifier}. "
+                    f"Retry after {retry_after}s"
+                )
+                return None
+
+        # Record attempt for all identifiers
+        for identifier in identifiers:
+            self._rate_limiter.record_attempt(identifier)
+
         user = self.user_repo.get_by_email(email)
 
         if user and check_password_hash(user.password, password):
+            # Successful login - reset rate limit
+            for identifier in identifiers:
+                self._rate_limiter.reset(identifier)
+
             # Import here to avoid circular dependency
             from app.backend.services.session.session_service import (  # noqa: PLC0415
                 SessionService,
@@ -62,6 +95,10 @@ class AuthService(BaseService):
                 browser=browser,
             )
 
+        logger.warning(
+            f"Failed authentication attempt for {email}. "
+            f"Remaining attempts: {self._rate_limiter.get_remaining_attempts(email)}"
+        )
         return None
 
     def check_email_available(self, email: str) -> bool:

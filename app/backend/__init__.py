@@ -1,35 +1,36 @@
 """Backend module with service registry.
 
-This module provides a central registry for all backend services.
-Services are instantiated lazily to avoid circular dependencies.
+This module provides a central registry for all backend services
+using the ServiceFactory pattern for dependency injection.
 """
 
-from .services.user.user_service import UserService
+from .services.factory import ServiceFactory, get_service_factory
+
+# Global service factory instance
+# Note: Use get_service_factory() for access to services
+_service_factory: ServiceFactory | None = None
 
 
-class Backend:
-    """Central registry for backend services.
+def get_factory() -> ServiceFactory:
+    """Get global service factory instance.
 
-    Provides access to all application services through a single interface.
-    Services are instantiated on first access to avoid circular dependencies.
+    Returns:
+        ServiceFactory instance for creating services.
     """
+    global _service_factory  # noqa: PLW0603
+    if _service_factory is None:
+        _service_factory = get_service_factory()
+    return _service_factory
 
-    def __init__(self) -> None:
-        """Initialize Backend service registry."""
-        self._user: UserService | None = None
+
+# Legacy compatibility - keep 'back' for existing code
+class _BackendCompat:
+    """Backward compatibility wrapper for legacy code."""
 
     @property
-    def user(self) -> UserService:
-        """Get UserService instance.
-
-        Returns:
-            UserService instance (created on first access).
-        """
-        if self._user is None:
-            self._user = UserService()
-        return self._user
+    def user(self):
+        """Get UserService (legacy compatibility)."""
+        return get_factory().user_service
 
 
-# Global service registry instance
-# Note: This is a legacy pattern. New code should use dependency injection.
-back = Backend()
+back = _BackendCompat()

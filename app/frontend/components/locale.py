@@ -1,6 +1,6 @@
+"""Locale and internationalization components."""
+
 from datetime import datetime
-from functools import lru_cache
-from pathlib import Path
 from uuid import uuid4
 
 from dash import (
@@ -14,42 +14,19 @@ from dash import (
     dcc,
     html,
 )
-import orjson
 
-from config import config
-
-# Allowed locales for security (prevent path traversal)
-ALLOWED_LOCALES = frozenset({"en", "ru"})
-I18N_DIR = Path(__file__).parent.parent.parent.parent / "i18n"
+from app.backend.services.i18n import get_i18n_service
 
 
-def _get_locale_path(locale: str) -> Path:
-    """Get safe path to locale file, preventing path traversal.
+def _l(text_id: str):
+    """Create a translatable text placeholder.
 
     Args:
-        locale: Locale code (e.g., 'en', 'ru')
+        text_id: Translation key.
 
     Returns:
-        Resolved path to locale JSON file.
+        HTML div with i18n attributes.
     """
-    # Sanitize locale: allow only alphanumeric and underscore
-    safe_locale = "".join(c for c in locale if c.isalnum() or c == "_")
-
-    # Check if locale is in allowed list
-    if safe_locale not in ALLOWED_LOCALES:
-        safe_locale = "en"
-
-    # Build and resolve path
-    locale_path = (I18N_DIR / f"{safe_locale}.json").resolve()
-
-    # Ensure path is within i18n directory (defense in depth)
-    if not str(locale_path).startswith(str(I18N_DIR.resolve())):
-        locale_path = (I18N_DIR / "en.json").resolve()
-
-    return locale_path
-
-
-def _l(text_id):
     return html.Div(
         id={"type": "i18n", "id": text_id, "uuid": str(uuid4())},
         style={
@@ -58,9 +35,15 @@ def _l(text_id):
     )
 
 
-def _l_dt(dt: datetime, dt_format="L LT"):
-    """
-    dt_format: https://day.js.org/docs/en/display/format
+def _l_dt(dt: datetime, dt_format: str = "L LT"):
+    """Create a translatable datetime placeholder.
+
+    Args:
+        dt: Datetime to format.
+        dt_format: Day.js format string (default: "L LT").
+
+    Returns:
+        HTML div with datetime attributes.
     """
     return html.Div(
         id={
@@ -76,6 +59,14 @@ def _l_dt(dt: datetime, dt_format="L LT"):
 
 
 def _l_dt_relative(dt: datetime):
+    """Create a relative datetime placeholder.
+
+    Args:
+        dt: Datetime to format.
+
+    Returns:
+        HTML div with relative datetime attributes.
+    """
     return html.Div(
         id={
             "type": "dayjs-relative",
@@ -89,6 +80,11 @@ def _l_dt_relative(dt: datetime):
 
 
 def LocaleStore():
+    """Create locale store component.
+
+    Returns:
+        Dash dcc.Store component for locale data.
+    """
     return dcc.Store(
         id="locale-store",
     )
@@ -97,7 +93,6 @@ def LocaleStore():
 @callback(
     Output("locale-store", "data"), Input("locale-selector", "value"), hidden=True
 )
-@lru_cache(maxsize=config.server.LRU_CACHE_MAXSIZE)
 def load_translate(locale: str) -> dict:
     """Load translation file for the given locale.
 
@@ -107,14 +102,8 @@ def load_translate(locale: str) -> dict:
     Returns:
         Dictionary with translations
     """
-    try:
-        locale_path = _get_locale_path(locale)
-        with locale_path.open() as fp:
-            return orjson.loads(fp.read())
-    except FileNotFoundError, orjson.JSONDecodeError:
-        # Fallback to English
-        with (I18N_DIR / "en.json").open() as fp:
-            return orjson.loads(fp.read())
+    i18n_service = get_i18n_service()
+    return i18n_service.get_translation(locale)
 
 
 clientside_callback(

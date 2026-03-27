@@ -148,11 +148,12 @@ class UserService(BaseService):
         Returns:
             UserDto with session info if successful, None otherwise.
         """
-        # Import here to avoid circular dependency
-        from app.backend.services.auth.auth_service import AuthService  # noqa: PLC0415
+        from app.backend.services.factory import (  # noqa: PLC0415
+            get_service_factory,
+        )
 
-        auth_service = AuthService(self.user_repo)
-        return auth_service.authenticate(
+        factory = get_service_factory()
+        return factory.auth_service.authenticate(
             email=email,
             password=password,
             ip=ip,
@@ -169,13 +170,12 @@ class UserService(BaseService):
         Returns:
             UserDto if found, None otherwise.
         """
-        # Import here to avoid circular dependency
-        from app.backend.services.session.session_service import (  # noqa: PLC0415
-            SessionService,
+        from app.backend.services.factory import (  # noqa: PLC0415
+            get_service_factory,
         )
 
-        session_service = SessionService()
-        return session_service.get_user_by_session(session_id)
+        factory = get_service_factory()
+        return factory.session_service.get_user_by_session(session_id)
 
     def create_session(
         self,
@@ -195,13 +195,12 @@ class UserService(BaseService):
         Returns:
             UserDto with session info.
         """
-        # Import here to avoid circular dependency
-        from app.backend.services.session.session_service import (  # noqa: PLC0415
-            SessionService,
+        from app.backend.services.factory import (  # noqa: PLC0415
+            get_service_factory,
         )
 
-        session_service = SessionService()
-        return session_service.create_session(
+        factory = get_service_factory()
+        return factory.session_service.create_session(
             user=user,
             ip=ip,
             os=os,
@@ -217,13 +216,12 @@ class UserService(BaseService):
         Returns:
             True if session was deactivated, False if not found.
         """
-        # Import here to avoid circular dependency
-        from app.backend.services.session.session_service import (  # noqa: PLC0415
-            SessionService,
+        from app.backend.services.factory import (  # noqa: PLC0415
+            get_service_factory,
         )
 
-        session_service = SessionService()
-        return session_service.deactivate_session(session_id)
+        factory = get_service_factory()
+        return factory.session_service.deactivate_session(session_id)
 
     def get_active_sessions(
         self, user_id: UUID, exclude_id: UUID | None = None
@@ -237,10 +235,9 @@ class UserService(BaseService):
         Returns:
             List of SessionDto objects.
         """
-        # Import here to avoid circular dependency
-        from app.backend.services.session.session_service import (  # noqa: PLC0415
-            SessionService,
+        from app.backend.services.factory import (  # noqa: PLC0415
+            get_service_factory,
         )
 
-        session_service = SessionService()
-        return session_service.get_active_sessions(user_id, exclude_id)
+        factory = get_service_factory()
+        return factory.session_service.get_active_sessions(user_id, exclude_id)

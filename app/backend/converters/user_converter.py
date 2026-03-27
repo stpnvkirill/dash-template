@@ -1,16 +1,13 @@
-from typing import TYPE_CHECKING
+"""Converter for User model to UserDto."""
 
 from app.backend.database.models import User
 from app.backend.domain import SessionDto, UserDto
 
-if TYPE_CHECKING:
-    pass
-
 from .base_converter import BaseConverter
 
 
-class UserConverter(BaseConverter):
-    """Converter for users."""
+class UserConverter(BaseConverter[User, UserDto]):
+    """Converter for User model to UserDto."""
 
     @staticmethod
     def to_dto(
@@ -64,3 +61,17 @@ class UserConverter(BaseConverter):
             permissions=resolved_permissions,
             permission_groups=resolved_groups,
         )
+
+    @staticmethod
+    def from_dto(_dto: UserDto) -> User | None:
+        """Convert UserDto to model (not implemented).
+
+        Args:
+            _dto: UserDto instance.
+
+        Returns:
+            None (conversion from DTO to model not supported).
+        """
+        # This converter is primarily for model -> DTO conversion
+        # DTO -> model conversion would require additional logic
+        return None
