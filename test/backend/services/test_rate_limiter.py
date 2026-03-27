@@ -18,9 +18,9 @@ class TestRateLimitConfig:
     def test_default_config(self) -> None:
         """Test default configuration values."""
         config = RateLimitConfig()
-        assert config.max_attempts == 5  # noqa: PLR2004
-        assert config.window_seconds == 300  # noqa: PLR2004
-        assert config.block_duration_seconds == 900  # noqa: PLR2004
+        assert config.max_attempts == 5
+        assert config.window_seconds == 300
+        assert config.block_duration_seconds == 900
 
     def test_custom_config(self) -> None:
         """Test custom configuration values."""
@@ -29,9 +29,9 @@ class TestRateLimitConfig:
             window_seconds=60,
             block_duration_seconds=300,
         )
-        assert config.max_attempts == 3  # noqa: PLR2004
-        assert config.window_seconds == 60  # noqa: PLR2004
-        assert config.block_duration_seconds == 300  # noqa: PLR2004
+        assert config.max_attempts == 3
+        assert config.window_seconds == 60
+        assert config.block_duration_seconds == 300
 
 
 class TestRateLimiter:
@@ -69,10 +69,10 @@ class TestRateLimiter:
         """Test getting remaining attempts."""
         identifier = "test@example.com"
 
-        assert limiter.get_remaining_attempts(identifier) == 3  # noqa: PLR2004
+        assert limiter.get_remaining_attempts(identifier) == 3
 
         limiter.record_attempt(identifier)
-        assert limiter.get_remaining_attempts(identifier) == 2  # noqa: PLR2004
+        assert limiter.get_remaining_attempts(identifier) == 2
 
         limiter.record_attempt(identifier)
         assert limiter.get_remaining_attempts(identifier) == 1
@@ -95,7 +95,7 @@ class TestRateLimiter:
         retry_after = limiter.get_retry_after(identifier)
         assert retry_after is not None
         assert retry_after > 0
-        assert retry_after <= 300  # noqa: PLR2004  # block_duration_seconds
+        assert retry_after <= 300  # block_duration_seconds
 
     def test_reset(self, limiter: RateLimiter) -> None:
         """Test resetting rate limit."""
@@ -111,7 +111,7 @@ class TestRateLimiter:
         limiter.reset(identifier)
 
         assert not limiter.is_blocked(identifier)
-        assert limiter.get_remaining_attempts(identifier) == 3  # noqa: PLR2004
+        assert limiter.get_remaining_attempts(identifier) == 3
 
     def test_window_expiration(self, limiter: RateLimiter) -> None:
         """Test that old attempts expire after window."""
@@ -131,15 +131,15 @@ class TestRateLimiter:
             time.time() + 61,  # Window + 1 second
         )
 
-        assert limiter.get_remaining_attempts(identifier) == 3  # noqa: PLR2004
+        assert limiter.get_remaining_attempts(identifier) == 3
 
     def test_multiple_identifiers(self, limiter: RateLimiter) -> None:
         """Test that different identifiers are tracked separately."""
         limiter.record_attempt("user1@example.com")
         limiter.record_attempt("user2@example.com")
 
-        assert limiter.get_remaining_attempts("user1@example.com") == 2  # noqa: PLR2004
-        assert limiter.get_remaining_attempts("user2@example.com") == 2  # noqa: PLR2004
+        assert limiter.get_remaining_attempts("user1@example.com") == 2
+        assert limiter.get_remaining_attempts("user2@example.com") == 2
 
         # Block user1 (need 3 more to exceed limit of 3)
         limiter.record_attempt("user1@example.com")
@@ -190,6 +190,6 @@ class TestRateLimiterConfig:
 
     def test_rate_limiting_enabled_by_default(self) -> None:
         """Test that rate limiting is enabled by default."""
-        from config import config  # noqa: PLC0415
+        from config import config
 
         assert config.server.ENABLE_RATE_LIMITING is True

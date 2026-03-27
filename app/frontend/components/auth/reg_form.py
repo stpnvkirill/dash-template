@@ -98,7 +98,7 @@ def check_email(email):
     running=(Output(RegButton.cid(namespace=namespace), "loading"), True, False),
     hidden=True,
 )
-def reg_user_callback(n_clicks, email, first_name, last_name, sex, password, next_page):  # noqa: PLR0913
+def reg_user_callback(n_clicks, email, first_name, last_name, sex, password, next_page):
     if n_clicks:
         user = back.user.create_user(
             email=email,

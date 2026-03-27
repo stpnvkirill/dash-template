@@ -82,7 +82,7 @@ class TestI18nService:
     def test_init_custom_cache_size(self) -> None:
         """Test initialization with custom cache size."""
         service = I18nService(cache_maxsize=50)
-        assert service._cache_maxsize == 50  # noqa: PLR2004
+        assert service._cache_maxsize == 50
 
     def test_get_translation_english(self) -> None:
         """Test loading English translations."""
@@ -152,13 +152,13 @@ class TestI18nService:
         service.get_translation("en")
         service.get_translation("ru")
 
-        assert len(service._cache) == 2  # noqa: PLR2004
+        assert len(service._cache) == 2
 
         # Load 3rd translation (if it existed) would evict oldest
         # For now, verify cache doesn't exceed maxsize
         service.get_translation("en")  # Access "en" to make it recently used
 
-        assert len(service._cache) <= 2  # noqa: PLR2004
+        assert len(service._cache) <= 2
 
     def test_get_translation_error_handling(self) -> None:
         """Test error handling for missing files."""

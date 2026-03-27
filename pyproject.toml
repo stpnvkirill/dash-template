@@ -34,9 +34,30 @@ fix = true
 
 [tool.ruff.lint]
 select = [
-  "E", "W", "F", "I", "UP",
-  "B", "SIM", "C4", "TID", "ARG",
-  "PTH", "PL", "TRY", "RUF",
+  "E",      # pycodestyle errors
+  "W",      # pycodestyle warnings
+  "F",      # Pyflakes
+  "I",      # isort
+  "UP",     # pyupgrade
+  "B",      # flake8-bugbear
+  "SIM",    # flake8-simplify
+  "C4",     # flake8-comprehensions
+  "TID",    # flake8-tidy-imports
+  "ARG",    # flake8-unused-arguments
+  "PTH",    # flake8-use-pathlib
+  "RUF",    # Ruff-specific rules
+  "S",      # flake8-bandit (security)
+  "G",      # flake8-logging-format
+  "A",      # flake8-builtins
+  "FA",     # flake8-future-annotations
+  "PERF",   # perflint
+]
+ignore = [
+  "S101",   # assert statements (allowed in tests)
+  "S104",   # hardcoded bind address (development)
+  "S106",   # hardcoded passwords (development)
+  "G004",   # logging f-string (acceptable for structured logs)
+  "A002",   # builtin argument shadowing (common in SQLAlchemy)
 ]
 
 

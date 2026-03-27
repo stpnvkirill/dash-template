@@ -27,20 +27,20 @@ def _normalize_permission(permission: PermissionInput) -> tuple[str, str]:
             if delimiter in permission:
                 category, key = permission.split(delimiter, 1)
                 return category.strip(), key.strip()
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(
             "String permission must use ':' or '.' to separate category and key."
         )
 
     if isinstance(permission, Sequence):
-        if len(permission) != 2:  # noqa: PLR2004
-            raise ValueError("Sequence permission must contain category and key.")  # noqa: TRY003
+        if len(permission) != 2:
+            raise ValueError("Sequence permission must contain category and key.")
         category, key = permission
         return str(category), str(key)
 
     if hasattr(permission, "category") and hasattr(permission, "key"):
         return str(permission.category), str(permission.key)
 
-    raise TypeError("Unsupported permission descriptor.")  # noqa: TRY003
+    raise TypeError("Unsupported permission descriptor.")
 
 
 def _normalize_permissions(

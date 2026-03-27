@@ -115,7 +115,7 @@ def get_i18n_service() -> I18nService:
     Returns:
         I18nService instance.
     """
-    global _i18n_service  # noqa: PLW0603
+    global _i18n_service
     if _i18n_service is None:
         _i18n_service = I18nService()
     return _i18n_service
@@ -123,5 +123,5 @@ def get_i18n_service() -> I18nService:
 
 def reset_i18n_service() -> None:
     """Reset global i18n service (useful for testing)."""
-    global _i18n_service  # noqa: PLW0603
+    global _i18n_service
     _i18n_service = None

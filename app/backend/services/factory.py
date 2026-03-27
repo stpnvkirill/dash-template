@@ -96,7 +96,7 @@ def get_service_factory() -> ServiceFactory:
     Returns:
         ServiceFactory instance.
     """
-    global _service_factory  # noqa: PLW0603
+    global _service_factory
     if _service_factory is None:
         _service_factory = ServiceFactory()
     return _service_factory
@@ -104,5 +104,5 @@ def get_service_factory() -> ServiceFactory:
 
 def reset_service_factory() -> None:
     """Reset global service factory (useful for testing)."""
-    global _service_factory  # noqa: PLW0603
+    global _service_factory
     _service_factory = None

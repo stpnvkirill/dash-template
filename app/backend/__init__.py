@@ -17,7 +17,7 @@ def get_factory() -> ServiceFactory:
     Returns:
         ServiceFactory instance for creating services.
     """
-    global _service_factory  # noqa: PLW0603
+    global _service_factory
     if _service_factory is None:
         _service_factory = get_service_factory()
     return _service_factory

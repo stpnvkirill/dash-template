@@ -37,7 +37,7 @@ def used_keys():
 def test_all_languages_have_same_keys(i18n_files):
     languages = list(i18n_files.keys())
 
-    if len(languages) < 2:  # noqa: PLR2004
+    if len(languages) < 2:
         return
 
     base_lang = "en" if "en" in languages else languages[0]

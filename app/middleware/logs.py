@@ -9,6 +9,8 @@ from pythonjsonlogger.json import JsonFormatter
 
 from .base import BaseMiddleware
 
+logger = logging.getLogger(__name__)
+
 
 class AutoContextFormatter(JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
@@ -146,6 +148,7 @@ def get_error_source(error: Exception):
                                 "source": source_line,
                             }
                 except Exception:
+                    logger.debug("Failed to extract source line from traceback")
                     pass
                 return {
                     "error": str(error),
@@ -155,7 +158,7 @@ def get_error_source(error: Exception):
 
             tb = tb.tb_next
 
-        return None  # noqa: TRY300
+        return None
 
     except Exception:
         return None

@@ -90,16 +90,16 @@ class TestAuthService:
 
     def test_authenticate_with_rate_limiting_disabled(self, user: UserTest):
         """Test authentication works when rate limiting is disabled"""
-        from app.backend.database.models import User, UserSession  # noqa: PLC0415
-        from app.backend.infrastructure.database import SqlService  # noqa: PLC0415
-        from app.backend.repositories.session_repository import (  # noqa: PLC0415
+        from app.backend.database.models import User, UserSession
+        from app.backend.infrastructure.database import SqlService
+        from app.backend.repositories.session_repository import (
             SessionRepository,
         )
-        from app.backend.repositories.user_repository import (  # noqa: PLC0415
+        from app.backend.repositories.user_repository import (
             UserRepository,
         )
-        from app.backend.services.auth.auth_service import AuthService  # noqa: PLC0415
-        from app.backend.services.session.session_service import (  # noqa: PLC0415
+        from app.backend.services.auth.auth_service import AuthService
+        from app.backend.services.session.session_service import (
             SessionService,
         )
 

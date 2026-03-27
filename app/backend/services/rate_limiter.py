@@ -161,7 +161,7 @@ def get_auth_rate_limiter() -> RateLimiter:
     Returns:
         RateLimiter instance.
     """
-    global _auth_rate_limiter  # noqa: PLW0603
+    global _auth_rate_limiter
     if _auth_rate_limiter is None:
         _auth_rate_limiter = RateLimiter()
     return _auth_rate_limiter
@@ -169,5 +169,5 @@ def get_auth_rate_limiter() -> RateLimiter:
 
 def reset_auth_rate_limiter() -> None:
     """Reset global rate limiter (useful for testing)."""
-    global _auth_rate_limiter  # noqa: PLW0603
+    global _auth_rate_limiter
     _auth_rate_limiter = None
