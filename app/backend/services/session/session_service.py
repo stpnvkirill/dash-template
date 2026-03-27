@@ -135,19 +135,41 @@ class SessionService(BaseService):
         result = self.session_repo.deactivate_session(session_id)
         return result is not None
 
+    def deactivate_all_other_sessions(
+        self, user_id: UUID, exclude_session_id: UUID
+    ) -> int:
+        """Deactivate all user sessions except specified one.
+
+        Args:
+            user_id: User ID.
+            exclude_session_id: Session ID to keep active.
+
+        Returns:
+            Number of deactivated sessions.
+        """
+        return self.session_repo.deactivate_all_except(user_id, exclude_session_id)
+
     def get_active_sessions(
-        self, user_id: UUID, exclude_id: UUID | None = None
+        self,
+        user_id: UUID,
+        exclude_id: UUID | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list[SessionDto]:
         """Get user's active sessions.
 
         Args:
             user_id: User ID.
             exclude_id: Session ID to exclude (optional).
+            limit: Maximum number of sessions to return (default: 50).
+            offset: Number of sessions to skip (default: 0).
 
         Returns:
             List of SessionDto objects.
         """
-        sessions = self.session_repo.get_active_sessions(user_id, exclude_id)
+        sessions = self.session_repo.get_active_sessions(
+            user_id, exclude_id, limit, offset
+        )
         return [SessionConverter.to_dto(session) for session in sessions]
 
     def get_user_by_session(self, session_id: UUID) -> UserDto | None:

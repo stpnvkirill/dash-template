@@ -4,6 +4,7 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.orm import selectinload
 
 from app.backend.database.models import OS, Browser, UserSession
 from app.backend.infrastructure.database import SqlService
@@ -26,22 +27,38 @@ class SessionRepository(BaseRepository[UserSession]):
         super().__init__(sql_service)
 
     def get_active_sessions(
-        self, user_id: UUID, exclude_id: UUID | None = None
+        self,
+        user_id: UUID,
+        exclude_id: UUID | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list[UserSession]:
         """Get user's active sessions.
 
         Args:
             user_id: User ID.
             exclude_id: Session ID to exclude (optional).
+            limit: Maximum number of sessions to return (default: 50).
+            offset: Number of sessions to skip (default: 0).
 
         Returns:
-            List of active UserSession instances.
+            List of active UserSession instances with eager-loaded OS and Browser.
         """
         conditions = [UserSession.user_id == user_id, UserSession.is_active]
         if exclude_id:
             conditions.append(UserSession.id != exclude_id)
 
-        return self.sql_service.select(*conditions)
+        with self.sql_service.session.session() as s:
+            stmt = (
+                sa.select(UserSession)
+                .where(*conditions)
+                .limit(limit)
+                .offset(offset)
+                .options(
+                    selectinload(UserSession.os), selectinload(UserSession.browser)
+                )
+            )
+            return list(s.scalars(stmt))
 
     def deactivate_session(self, session_id: UUID) -> UserSession | None:
         """Deactivate session.
@@ -53,6 +70,27 @@ class SessionRepository(BaseRepository[UserSession]):
             Updated UserSession instance or None if not found.
         """
         return self.update(session_id, is_active=False)
+
+    def deactivate_all_except(self, user_id: UUID, exclude_session_id: UUID) -> int:
+        """Deactivate all user sessions except specified one.
+
+        Args:
+            user_id: User ID.
+            exclude_session_id: Session ID to keep active.
+
+        Returns:
+            Number of deactivated sessions.
+        """
+        result = self.sql_service._session.execute(
+            sa.update(UserSession)
+            .where(
+                UserSession.user_id == user_id,
+                UserSession.id != exclude_session_id,
+                UserSession.is_active,
+            )
+            .values(is_active=False)
+        )
+        return result.rowcount
 
     def update_activity(self, session_id: UUID) -> UserSession | None:
         """Update session activity time.

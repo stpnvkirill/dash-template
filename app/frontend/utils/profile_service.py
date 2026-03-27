@@ -55,17 +55,23 @@ class FrontendProfileService:
         )
 
     @staticmethod
-    def get_active_sessions(user_id: UUID, exclude_id: UUID | None = None) -> list:
+    def get_active_sessions(
+        user_id: UUID, exclude_id: UUID | None = None, limit: int = 50, offset: int = 0
+    ) -> list:
         """Get active user sessions.
 
         Args:
             user_id: User ID.
             exclude_id: Exclude session with this ID (optional).
+            limit: Maximum number of sessions to return (default: 50).
+            offset: Number of sessions to skip (default: 0).
 
         Returns:
             List of active sessions.
         """
-        return back.user.get_active_sessions(user_id, exclude_id=exclude_id)
+        return back.user.get_active_sessions(
+            user_id, exclude_id=exclude_id, limit=limit, offset=offset
+        )
 
     @staticmethod
     def deactivate_session(session_id: UUID) -> None:
@@ -77,13 +83,16 @@ class FrontendProfileService:
         back.user.deactivate_session(session_id=session_id)
 
     @staticmethod
-    def deactivate_all_other_sessions(user_id: UUID, current_session_id: UUID) -> None:
+    def deactivate_all_other_sessions(user_id: UUID, current_session_id: UUID) -> int:
         """Deactivate all sessions except current.
 
         Args:
             user_id: User ID.
             current_session_id: Current session ID (do not deactivate).
+
+        Returns:
+            Number of deactivated sessions.
         """
-        sessions = back.user.get_active_sessions(user_id, exclude_id=current_session_id)
-        for session in sessions:
-            back.user.deactivate_session(session_id=session.id)
+        return back.user.deactivate_all_other_sessions(
+            user_id=user_id, exclude_session_id=current_session_id
+        )

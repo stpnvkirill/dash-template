@@ -107,7 +107,7 @@ class TestSessionService:
 
         # Get active sessions (excluding current)
         active_sessions = session_service.get_active_sessions(
-            user_id=created_user.id, exclude_id=session1.session.id
+            user_id=created_user.id, exclude_id=session1.session.id, limit=50, offset=0
         )
 
         assert len(active_sessions) == 1

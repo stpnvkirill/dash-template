@@ -150,6 +150,35 @@ class RateLimiter:
             record.timestamps.clear()
             record.blocked_until = 0.0
 
+    def cleanup_old_records(self) -> int:
+        """Remove stale records from memory.
+
+        Removes records that have no recent attempts and are not blocked.
+        This prevents memory leaks from accumulating unused identifiers.
+
+        Returns:
+            Number of records removed.
+        """
+        now = time.time()
+        cutoff = now - self.config.window_seconds
+        removed = 0
+
+        keys_to_remove = []
+        for identifier, record in self._records.items():
+            # Keep if blocked or has recent attempts
+            if record.blocked_until > now:
+                continue
+            if any(ts > cutoff for ts in record.timestamps):
+                continue
+            # Safe to remove
+            keys_to_remove.append(identifier)
+
+        for key in keys_to_remove:
+            del self._records[key]
+            removed += 1
+
+        return removed
+
 
 # Global rate limiter instance for authentication
 _auth_rate_limiter: RateLimiter | None = None

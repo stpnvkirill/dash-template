@@ -214,16 +214,40 @@ class UserService(BaseService):
         """
         return self._session_service.deactivate_session(session_id)
 
+    def deactivate_all_other_sessions(
+        self, user_id: UUID, exclude_session_id: UUID
+    ) -> int:
+        """Deactivate all user sessions except specified one.
+
+        Args:
+            user_id: User ID.
+            exclude_session_id: Session ID to keep active.
+
+        Returns:
+            Number of deactivated sessions.
+        """
+        return self._session_service.deactivate_all_other_sessions(
+            user_id, exclude_session_id
+        )
+
     def get_active_sessions(
-        self, user_id: UUID, exclude_id: UUID | None = None
+        self,
+        user_id: UUID,
+        exclude_id: UUID | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list:
         """Get user's active sessions.
 
         Args:
             user_id: User ID.
             exclude_id: Session ID to exclude (optional).
+            limit: Maximum number of sessions to return (default: 50).
+            offset: Number of sessions to skip (default: 0).
 
         Returns:
             List of SessionDto objects.
         """
-        return self._session_service.get_active_sessions(user_id, exclude_id)
+        return self._session_service.get_active_sessions(
+            user_id, exclude_id, limit, offset
+        )

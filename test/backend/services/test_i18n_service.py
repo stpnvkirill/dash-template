@@ -77,12 +77,18 @@ class TestI18nService:
         """Test default initialization."""
         service = I18nService()
         assert service._cache_maxsize > 0
-        assert service._cache == {}
+        # Cache is preloaded with en and ru translations
+        assert "en" in service._cache
+        assert "ru" in service._cache
+        assert len(service._cache) == 2
 
     def test_init_custom_cache_size(self) -> None:
         """Test initialization with custom cache size."""
         service = I18nService(cache_maxsize=50)
         assert service._cache_maxsize == 50
+        # Cache is preloaded with en and ru translations
+        assert "en" in service._cache
+        assert "ru" in service._cache
 
     def test_get_translation_english(self) -> None:
         """Test loading English translations."""

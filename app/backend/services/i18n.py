@@ -40,6 +40,26 @@ def _get_locale_path(locale: str) -> Path:
     return locale_path
 
 
+def _load_translation_file(locale: str) -> dict:
+    """Load translation file for locale.
+
+    Args:
+        locale: Locale code.
+
+    Returns:
+        Dictionary with translations.
+    """
+    try:
+        locale_path = _get_locale_path(locale)
+        with locale_path.open() as fp:
+            return orjson.loads(fp.read())
+    except FileNotFoundError, orjson.JSONDecodeError:
+        logger.exception("Failed to load translation for %s", locale)
+        # Fallback to English
+        with (I18N_DIR / "en.json").open() as fp:
+            return orjson.loads(fp.read())
+
+
 class I18nService:
     """Service for loading and managing translations.
 
@@ -58,7 +78,17 @@ class I18nService:
             if cache_maxsize is not None
             else config.server.LRU_CACHE_MAXSIZE
         )
+        # Preload all available translations at startup
         self._cache: dict[str, dict] = {}
+        self._preload_translations()
+
+    def _preload_translations(self) -> None:
+        """Preload all available translations at startup."""
+        for locale in ALLOWED_LOCALES:
+            try:
+                self._cache[locale] = _load_translation_file(locale)
+            except Exception:
+                logger.warning("Failed to preload translation for %s", locale)
 
     def get_translation(self, locale: str) -> dict:
         """Load translation file for the given locale.
@@ -69,27 +99,14 @@ class I18nService:
         Returns:
             Dictionary with translations.
         """
-        # Simple LRU cache
+        # Check cache first (includes preloaded translations)
         if locale in self._cache:
             return self._cache[locale]
 
-        if len(self._cache) >= self._cache_maxsize:
-            # Remove oldest entry
-            self._cache.pop(next(iter(self._cache)))
-
-        try:
-            locale_path = _get_locale_path(locale)
-            with locale_path.open() as fp:
-                result = orjson.loads(fp.read())
-                self._cache[locale] = result
-                return result
-        except FileNotFoundError, orjson.JSONDecodeError:
-            logger.exception("Failed to load translation for %s", locale)
-            # Fallback to English
-            with (I18N_DIR / "en.json").open() as fp:
-                result = orjson.loads(fp.read())
-                self._cache[locale] = result
-                return result
+        # Load and cache
+        result = _load_translation_file(locale)
+        self._cache[locale] = result
+        return result
 
     def get_text(self, key: str, locale: str = "en") -> str:
         """Get translated text by key.
