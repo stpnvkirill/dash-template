@@ -1,7 +1,12 @@
 import dash_mantine_components as dmc
 
 
-def LanguagePicker():
+def LanguagePicker() -> dmc.Select:
+    """Application language picker component.
+
+    Returns:
+        Select component with flags for locale selection (en/ru).
+    """
     return dmc.Select(
         id="locale-selector",
         value="en",

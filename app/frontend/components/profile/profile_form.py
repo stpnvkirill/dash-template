@@ -13,7 +13,6 @@ from dash import (
 import dash_mantine_components as dmc
 from flask_login import current_user
 
-from app.backend import back
 from app.backend.domain import UserDto
 from app.frontend.components.locale import _l, _l_dt, _l_dt_relative
 from app.frontend.components.primitives import Box
@@ -24,33 +23,42 @@ from app.frontend.components.shared.inputs import (
     UserLastNameInput,
     UserSexInput,
 )
+from app.frontend.utils import FrontendProfileService, ProfileUpdateData
 
 from .buttons import ProfileLogoutButton, ProfileSaveButton
 
-namespace = "profile"
-ProfileRespBox = Box(namespace=namespace, suffix="ProfileResp")
+NAMESPACE = "profile"
+ProfileRespBox = Box(namespace=NAMESPACE, suffix="ProfileResp")
 
 
-def ProfileForm(user: UserDto):
+def ProfileForm(user: UserDto) -> dmc.Box:
+    """User profile form.
+
+    Args:
+        user: User object with data to display.
+
+    Returns:
+        Profile form component.
+    """
     return dmc.Box(
         [
-            UserEmailInput(namespace=namespace)(value=user.email, disabled=True),
+            UserEmailInput(namespace=NAMESPACE)(value=user.email, disabled=True),
             dmc.Divider(my="sm"),
-            UserLastNameInput(namespace=namespace)(
+            UserLastNameInput(namespace=NAMESPACE)(
                 value=user.last_name,
             ),
-            UserFirstNameInput(namespace=namespace)(
+            UserFirstNameInput(namespace=NAMESPACE)(
                 value=user.first_name,
                 pb="md",
             ),
-            UserSexInput(namespace=namespace)(
+            UserSexInput(namespace=NAMESPACE)(
                 value=user.sex,
             ),
             dmc.Divider(my="sm"),
             PwdInput(
-                namespace=namespace,
+                namespace=NAMESPACE,
             )(),
-            ProfileSaveButton(namespace=namespace)(),
+            ProfileSaveButton(namespace=NAMESPACE)(),
             ProfileRespBox(),
             dmc.Text(
                 [
@@ -63,46 +71,70 @@ def ProfileForm(user: UserDto):
                 ta="center",
             ),
             dmc.Text([_l("profileform_user_id"), str(user.id)], ta="center"),
-            ProfileLogoutButton(namespace=namespace)(),
+            ProfileLogoutButton(namespace=NAMESPACE)(),
         ]
     )
 
 
 @callback(
-    Output(ProfileRespBox.cid(namespace=namespace), "children"),
-    Input(ProfileSaveButton.cid(namespace=namespace), "n_clicks"),
-    State(UserFirstNameInput.cid(namespace=namespace), "value"),
-    State(UserLastNameInput.cid(namespace=namespace), "value"),
-    State(UserSexInput.cid(namespace=namespace), "value"),
-    State(PwdInput.cid(namespace=namespace), "value"),
+    Output(ProfileRespBox.cid(namespace=NAMESPACE), "children"),
+    Input(ProfileSaveButton.cid(namespace=NAMESPACE), "n_clicks"),
+    State(UserFirstNameInput.cid(namespace=NAMESPACE), "value"),
+    State(UserLastNameInput.cid(namespace=NAMESPACE), "value"),
+    State(UserSexInput.cid(namespace=NAMESPACE), "value"),
+    State(PwdInput.cid(namespace=NAMESPACE), "value"),
     running=(
-        Output(ProfileSaveButton.cid(namespace=namespace), "loading"),
+        Output(ProfileSaveButton.cid(namespace=NAMESPACE), "loading"),
         True,
         False,
     ),
-    hidden=True,
+    prevent_initial_call=True,
 )
-def update_profile(n, firstname, lastname, sex, pwd):
-    if n and firstname and lastname:
-        user = back.user.update_user(
+def update_profile(
+    n: int | None,
+    firstname: str | None,
+    lastname: str | None,
+    sex: str | None,
+    pwd: str | None,
+) -> str | None:
+    """Update user profile data.
+
+    Args:
+        n: Number of clicks on save button.
+        firstname: New user first name.
+        lastname: New user last name.
+        sex: User sex.
+        pwd: New password (empty string = no change).
+
+    Returns:
+        Empty string on success, None if no changes.
+    """
+    if not (n and firstname and lastname):
+        return None
+
+    try:
+        update_data = ProfileUpdateData(
             user_id=current_user.id,
             first_name=firstname,
             last_name=lastname,
-            password=pwd,
             sex=sex,
+            password=pwd if pwd else None,
         )
+
+        user = FrontendProfileService.update_profile(update_data)
+
         set_props(
-            UserFirstNameInput.cid(namespace=namespace), {"value": user.first_name}
+            UserFirstNameInput.cid(namespace=NAMESPACE), {"value": user.first_name}
         )
-        set_props(UserLastNameInput.cid(namespace=namespace), {"value": user.last_name})
-        set_props(PwdInput.cid(namespace=namespace), {"value": ""})
+        set_props(UserLastNameInput.cid(namespace=NAMESPACE), {"value": user.last_name})
+        set_props(PwdInput.cid(namespace=NAMESPACE), {"value": ""})
+
         patched_notify = Patch()
         patched_notify.append(
             {
                 "action": "show",
                 "id": str(uuid7()),
-                # TODO: not work "message":_l("notify_dataupdate")
-                "message": "The data has been updated",
+                "message": _l("notify_data_update"),
                 "withCloseButton": True,
                 "color": "green",
                 "autoClose": 3500,
@@ -118,11 +150,25 @@ def update_profile(n, firstname, lastname, sex, pwd):
         )
         return ""
 
+    except Exception:
+        patched_notify = Patch()
+        patched_notify.append(
+            {
+                "action": "show",
+                "id": str(uuid7()),
+                "message": _l("notify_error"),
+                "withCloseButton": True,
+                "color": "red",
+                "autoClose": 5000,
+            }
+        )
+        set_props("notification-container", {"sendNotifications": patched_notify})
+        return ""
+
 
 clientside_callback(
     ClientsideFunction("profile", "check_pwd"),
-    Output(ProfileSaveButton.cid(namespace=namespace), "disabled"),
-    Input(PwdInput.cid(namespace=namespace), "error"),
+    Output(ProfileSaveButton.cid(namespace=NAMESPACE), "disabled"),
+    Input(PwdInput.cid(namespace=NAMESPACE), "error"),
     prevent_initial_call=True,
-    hidden=True,
 )
