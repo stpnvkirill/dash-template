@@ -45,10 +45,14 @@ def session_service(session_repo, permission_service):
 
 @pytest.fixture(scope="function")
 def auth_service(user_repo, session_service):
-    """Fixture for AuthService with injected dependencies."""
+    """Fixture for AuthService with injected dependencies.
+
+    Rate limiting is disabled for tests to avoid flaky tests.
+    """
     return AuthService(
         user_repo=user_repo,
         session_service=session_service,
+        enable_rate_limiting=False,
     )
 
 

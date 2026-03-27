@@ -1,3 +1,5 @@
+"""Tests for AuthService."""
+
 from test.conftest import UserTest
 
 
@@ -85,3 +87,54 @@ class TestAuthService:
 
         # Email should no longer be available
         assert not auth_service.check_email_available(user.email)
+
+    def test_authenticate_with_rate_limiting_disabled(self, user: UserTest):
+        """Test authentication works when rate limiting is disabled"""
+        from app.backend.database.models import User, UserSession  # noqa: PLC0415
+        from app.backend.infrastructure.database import SqlService  # noqa: PLC0415
+        from app.backend.repositories.session_repository import (  # noqa: PLC0415
+            SessionRepository,
+        )
+        from app.backend.repositories.user_repository import (  # noqa: PLC0415
+            UserRepository,
+        )
+        from app.backend.services.auth.auth_service import AuthService  # noqa: PLC0415
+        from app.backend.services.session.session_service import (  # noqa: PLC0415
+            SessionService,
+        )
+
+        user_repo = UserRepository(SqlService(model=User))
+        session_repo = SessionRepository(SqlService(model=UserSession))
+        session_service = SessionService(session_repo=session_repo)
+
+        service_no_rate_limit = AuthService(
+            user_repo=user_repo,
+            session_service=session_service,
+            enable_rate_limiting=False,
+        )
+
+        # Rate limiter should be None when disabled
+        assert service_no_rate_limit._rate_limiter is None
+
+        # Create user
+        user_repo.create_user(
+            email=user.email,
+            password=user.pwd,
+            first_name="Test",
+            last_name="Test",
+            sex="MALE",
+        )
+
+        # Authenticate should work without rate limiting
+        # Make multiple attempts - should not be blocked
+        for _ in range(10):  # More than rate limit
+            user_dto = service_no_rate_limit.authenticate(
+                email=user.email,
+                password=user.pwd,
+                ip="127.0.0.1",
+                os="Linux",
+                browser="Chrome",
+            )
+            # Should succeed every time (no rate limiting)
+            assert user_dto is not None
+            assert user_dto.email == user.email

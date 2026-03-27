@@ -11,6 +11,7 @@ from app.backend.repositories.user_repository import UserRepository
 from app.backend.services.base import BaseService
 from app.backend.services.rate_limiter import get_auth_rate_limiter
 from app.backend.services.session.session_service import SessionService
+from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -26,19 +27,27 @@ class AuthService(BaseService):
         self,
         user_repo: UserRepository | None = None,
         session_service: SessionService | None = None,
+        enable_rate_limiting: bool | None = None,
     ):
         """Initialize AuthService.
 
         Args:
             user_repo: UserRepository instance (optional, created if not provided).
             session_service: SessionService instance for session creation.
+            enable_rate_limiting: Override config setting for rate limiting.
+                                  If None, uses config.server.ENABLE_RATE_LIMITING.
         """
         super().__init__()
         self.user_repo: UserRepository = user_repo or UserRepository(
             SqlService(model=User)
         )
         self._session_service = session_service
-        self._rate_limiter = get_auth_rate_limiter()
+
+        # Determine if rate limiting should be enabled
+        if enable_rate_limiting is None:
+            enable_rate_limiting = config.server.ENABLE_RATE_LIMITING
+
+        self._rate_limiter = get_auth_rate_limiter() if enable_rate_limiting else None
 
     def authenticate(
         self,
@@ -63,31 +72,34 @@ class AuthService(BaseService):
         Raises:
             RateLimitExceeded: If too many failed attempts.
         """
-        # Check rate limit using email and IP
-        identifiers = [email.lower()]
-        if ip:
-            identifiers.append(f"ip:{ip}")
+        # Rate limiting is optional - skip if disabled
+        if self._rate_limiter is not None:
+            # Check rate limit using email and IP
+            identifiers = [email.lower()]
+            if ip:
+                identifiers.append(f"ip:{ip}")
 
-        # Check if any identifier is blocked
-        for identifier in identifiers:
-            if self._rate_limiter.is_blocked(identifier):
-                retry_after = self._rate_limiter.get_retry_after(identifier)
-                logger.warning(
-                    f"Authentication rate limited for {identifier}. "
-                    f"Retry after {retry_after}s"
-                )
-                return None
+            # Check if any identifier is blocked
+            for identifier in identifiers:
+                if self._rate_limiter.is_blocked(identifier):
+                    retry_after = self._rate_limiter.get_retry_after(identifier)
+                    logger.warning(
+                        f"Authentication rate limited for {identifier}. "
+                        f"Retry after {retry_after}s"
+                    )
+                    return None
 
-        # Record attempt for all identifiers
-        for identifier in identifiers:
-            self._rate_limiter.record_attempt(identifier)
+            # Record attempt for all identifiers
+            for identifier in identifiers:
+                self._rate_limiter.record_attempt(identifier)
 
         user = self.user_repo.get_by_email(email)
 
         if user and check_password_hash(user.password, password):
-            # Successful login - reset rate limit
-            for identifier in identifiers:
-                self._rate_limiter.reset(identifier)
+            # Successful login - reset rate limit if enabled
+            if self._rate_limiter is not None:
+                for identifier in identifiers:
+                    self._rate_limiter.reset(identifier)
 
             return self._session_service.create_session(
                 user=user,
@@ -96,10 +108,16 @@ class AuthService(BaseService):
                 browser=browser,
             )
 
-        logger.warning(
-            f"Failed authentication attempt for {email}. "
-            f"Remaining attempts: {self._rate_limiter.get_remaining_attempts(email)}"
-        )
+        # Log failed attempt with rate limit info if enabled
+        if self._rate_limiter is not None:
+            remaining = self._rate_limiter.get_remaining_attempts(email)
+            logger.warning(
+                f"Failed authentication attempt for {email}. "
+                f"Remaining attempts: {remaining}"
+            )
+        else:
+            logger.warning(f"Failed authentication attempt for {email}")
+
         return None
 
     def check_email_available(self, email: str) -> bool:

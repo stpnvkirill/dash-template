@@ -32,6 +32,9 @@ You need a PostgreSQL instance: local install, cloud (e.g. managed DB), or run o
    POSTGRES_PASSWORD=your_password
    POSTGRES_DB=dash
    SECRET_KEY=your_secret_key
+   
+   # Optional: Disable rate limiting for internal tools
+   ENABLE_RATE_LIMITING=false
    ```
 
 4. **Apply migrations and start:**
@@ -183,16 +186,19 @@ class YourEntityService(BaseService):
 ```
 
 #### 8. Backend Registration
-Add service to `app/backend/__init__.py`:
+New code should use `ServiceFactory`. Legacy code can use `back` for compatibility:
 
 ```python
 # app/backend/__init__.py
-from .services.your_entity.your_entity_service import YourEntityService
+from app.backend.services.factory import get_service_factory
 
-class Backend:
-    def __init__(self):
-        # ... existing services ...
-        self.your_entity = YourEntityService()
+# New way (recommended)
+factory = get_service_factory()
+entities = factory.your_entity_service.get_all_active()
+
+# Legacy way (for compatibility)
+from app.backend import back
+entities = back.user.your_entity_service.get_all_active()
 ```
 
 ### Frontend Feature Development
@@ -203,10 +209,11 @@ Create component in appropriate `app/frontend/components/` folder:
 ```python
 # app/frontend/components/your_entity/your_entity_list.py
 import dash_mantine_components as dmc
-from app.backend import back
+from app.backend.services.factory import get_service_factory
 
 def YourEntityList():
-    entities = back.your_entity.get_all_active()
+    factory = get_service_factory()
+    entities = factory.your_entity_service.get_all_active()
     return dmc.Stack([
         dmc.Title("Your Entities", order=3),
         dmc.List([
@@ -257,10 +264,91 @@ from app.backend.services.your_entity.your_entity_service import YourEntityServi
 
 class TestYourEntityService:
     @pytest.fixture
-    def service(self):
-        return YourEntityService()
+    def service_factory(self):
+        from app.backend.services.factory import ServiceFactory, reset_service_factory
+        factory = ServiceFactory()
+        yield factory
+        reset_service_factory()
 
-    def test_get_all_active(self, service):
-        entities = service.get_all_active()
+    def test_get_all_active(self, service_factory):
+        entities = service_factory.your_entity_service.get_all_active()
         assert isinstance(entities, list)
 ```
+
+---
+
+## Additional Services
+
+### Password Validator
+
+Validate password strength:
+
+```python
+from app.backend.domain.validators import PasswordValidator
+
+result = PasswordValidator.validate("StrongP@ss123")
+if result.is_valid:
+    # Password meets requirements
+    ...
+else:
+    print(f"Error: {result.error_message}")
+```
+
+**Requirements:**
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character
+
+### Rate Limiter
+
+Protect against brute-force attacks:
+
+```python
+from app.backend.services.rate_limiter import get_auth_rate_limiter
+
+limiter = get_auth_rate_limiter()
+
+# Check if blocked
+if limiter.is_blocked("user@example.com"):
+    retry_after = limiter.get_retry_after("user@example.com")
+    print(f"Blocked for {retry_after} seconds")
+
+# Record attempt
+limiter.record_attempt("user@example.com")
+
+# Reset after successful login
+limiter.reset("user@example.com")
+```
+
+**Default limits:**
+- 5 attempts per 5 minutes
+- 15 minutes block after exceeding
+
+**Disable rate limiting** (for internal tools or development):
+
+```env
+# .env
+ENABLE_RATE_LIMITING=false
+```
+
+> **Note:** Rate limiting is enabled by default (`true`) for security. Only disable it for trusted internal tools.
+
+### I18n Service
+
+Load translations:
+
+```python
+from app.backend.services.i18n import get_i18n_service
+
+i18n = get_i18n_service()
+
+# Load all translations
+translations = i18n.get_translation("ru")
+
+# Get specific text
+text = i18n.get_text("btn_login", "ru")
+```
+
+**Supported locales:** `en`, `ru`
