@@ -80,7 +80,7 @@ clientside_callback(
     hidden=True,
 )
 def check_email(email):
-    if email and not back.user.check_email_is_available(email=email):
+    if email and not back.user.check_email_available(email=email):
         return "Email не подходит"
     return ""
 
